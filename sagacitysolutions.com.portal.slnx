@@ -1,0 +1,12 @@
+<Solution>
+  <Folder Name="/src/">
+    <Project Path="src/sagacitysolutions.com.portal.Application/sagacitysolutions.com.portal.Application.csproj" />
+    <Project Path="src/sagacitysolutions.com.portal.Domain/sagacitysolutions.com.portal.Domain.csproj" />
+    <Project Path="src/sagacitysolutions.com.portal.Infrastructure/sagacitysolutions.com.portal.Infrastructure.csproj" />
+    <Project Path="src/sagacitysolutions.com.portal.WebApi/sagacitysolutions.com.portal.WebApi.csproj" />
+  </Folder>
+  <Folder Name="/test/">
+    <Project Path="test/sagacitysolutions.com.portal.Infrastructure.Test/sagacitysolutions.com.portal.Infrastructure.Test.csproj" />
+    <Project Path="test/sagacitysolutions.com.portal.WebApi.Tests/sagacitysolutions.com.portal.WebApi.Tests.csproj" />
+  </Folder>
+</Solution>

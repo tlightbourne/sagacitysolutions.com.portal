@@ -1,0 +1,35 @@
+version: "3.9"
+
+services:
+  postgres:
+    image: postgres:14-alpine
+    environment:
+      POSTGRES_USER: logto
+      POSTGRES_PASSWORD: logto
+      POSTGRES_DB: logto
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U logto"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  logto:
+    image: svhd/logto:latest
+    depends_on:
+      postgres:
+        condition: service_healthy
+    ports:
+      - "3001:3001"
+      - "3002:3002"
+    environment:
+      # Core API / OIDC endpoint (used by clients and BFF)
+      ENDPOINT: http://localhost:3001
+      # Admin console endpoint
+      ADMIN_ENDPOINT: http://localhost:3002
+      DB_URL: postgresql://logto:logto@postgres:5432/logto
+    entrypoint: ["sh", "-c", "npm run cli db seed -- --swe && npm start"]
+
+volumes:
+  postgres_data:
