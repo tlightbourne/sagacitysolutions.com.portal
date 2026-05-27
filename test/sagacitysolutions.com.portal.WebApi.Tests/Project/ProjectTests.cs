@@ -4,7 +4,7 @@ using sagacitysolutions.com.portal.WebApi.Tests.Host;
 
 namespace sagacitysolutions.com.portal.WebApi.Tests.ProjectTests;
 
-public record ProjectTestDto(Guid Id, Guid TenantId, string Name);
+public record ProjectTestDto(Guid Id, string TenantId, string Name);
 
 public class ProjectTests : PortalWebHostBase
 {

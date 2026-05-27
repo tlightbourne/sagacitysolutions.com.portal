@@ -67,7 +67,7 @@ public class GetProjectsTests : DbTestBase
         // Arrange
         using var db = _fixture.GetPortalDbContext();
         
-        var unauthorizedTenantId = Guid.NewGuid();
+        var unauthorizedTenantId = Guid.NewGuid().ToString("N");
         var authorizedProject = new Project(_fixture.AuthorizedTenantId, "Authorized Tenant Project");
         var unauthorizedProject = new Project(unauthorizedTenantId, "Unauthorized Tenant Project");
         

@@ -80,7 +80,7 @@ public class GetProjectTasksTests : DbTestBase
     [Fact]
     public async Task GetProjectTasks_AppliesTenantIdGlobalQueryFilter()
     {
-        var unauthorizedTenantId = Guid.NewGuid();
+        var unauthorizedTenantId = Guid.NewGuid().ToString("N");
         var project = new Project(unauthorizedTenantId, "Test Project");
         // Arrange
         using var db = _fixture.GetPortalDbContext();

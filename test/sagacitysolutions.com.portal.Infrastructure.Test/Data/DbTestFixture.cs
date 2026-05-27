@@ -17,7 +17,7 @@ public class DbTestFixture : IAsyncLifetime
         .Build();
 
     public string ConnectionString => _dbContainer.GetConnectionString();
-    public Guid AuthorizedTenantId { get; } = Guid.NewGuid();
+    public string AuthorizedTenantId { get; } = Guid.NewGuid().ToString("N");
     public Func<Mock<IRequestContext>> RequestContextMockFactory { get; private set;}
 
     public DbTestFixture()
@@ -25,7 +25,7 @@ public class DbTestFixture : IAsyncLifetime
         RequestContextMockFactory = () => {
             var mock = new Mock<IRequestContext>();
             mock.Setup(r => r.GetClaimValue("authorized_tenants"))
-                .Returns(AuthorizedTenantId.ToString());
+                .Returns(AuthorizedTenantId);
             return mock;
         };
     }

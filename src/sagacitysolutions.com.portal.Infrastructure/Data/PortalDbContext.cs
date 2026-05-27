@@ -1,4 +1,5 @@
 using Microsoft.EntityFrameworkCore;
+using Npgsql.EntityFrameworkCore.PostgreSQL.ValueGeneration;
 using sagacitysolutions.com.portal.Application.Identity;
 using sagacitysolutions.com.portal.Domain.Entities;
 
@@ -7,16 +8,15 @@ namespace sagacitysolutions.com.portal.Infrastructure.Data;
 public class PortalDbContext : DbContext
 {
     private readonly IRequestContext _requestContext;
-    private readonly Guid[] _authorizedTenantIds;
+    private readonly string[] _authorizedTenantIds;
 
     public PortalDbContext(DbContextOptions<PortalDbContext> options, IRequestContext requestContext)
     : base(options)
     {
         _requestContext = requestContext;
         _authorizedTenantIds = _requestContext.GetClaimValue("authorized_tenants")?
-            .Split(',')
-            .Select(Guid.Parse)
-            .ToArray() ?? Array.Empty<Guid>();
+            .Split(new[] { ',', ' ' }, StringSplitOptions.RemoveEmptyEntries)
+            .ToArray() ?? Array.Empty<string>();
     }
 
     protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
@@ -30,7 +30,9 @@ public class PortalDbContext : DbContext
         modelBuilder.Entity<Project>(entity =>
         {
             entity.HasQueryFilter(e => _authorizedTenantIds.Contains(e.TenantId));
-            entity.Property(e => e.Id).ValueGeneratedOnAdd();
+            entity.Property(e => e.Id)
+                  .ValueGeneratedOnAdd()
+                  .HasValueGenerator<NpgsqlSequentialGuidValueGenerator>();
             entity.Property(e => e.Name).HasMaxLength(100);
         });
 
@@ -63,7 +65,9 @@ public class PortalDbContext : DbContext
         modelBuilder.Entity<Attachment>(entity =>
         {
             entity.HasQueryFilter(e => e.Task.ProjectId == _requestContext.ProjectId);
-            entity.Property(e => e.Id).ValueGeneratedOnAdd();
+            entity.Property(e => e.Id)
+                  .ValueGeneratedOnAdd()
+                  .HasValueGenerator<NpgsqlSequentialGuidValueGenerator>();
             entity.Property(e => e.Url).HasMaxLength(2000);
         });
 

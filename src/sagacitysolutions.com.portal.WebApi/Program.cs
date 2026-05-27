@@ -80,4 +80,24 @@ app.UseAuthorization();
 app.MapProjectRoutes();
 app.MapTaskRoutes();
 
+// Database Initialization & Validation
+using (var scope = app.Services.CreateScope())
+{
+    var db = scope.ServiceProvider.GetRequiredService<PortalDbContext>();
+    var migrations = db.Database.GetMigrations();
+    if (migrations.Any())
+    {
+        var pendingMigrations = await db.Database.GetPendingMigrationsAsync();
+        if (pendingMigrations.Any())
+        {
+            throw new InvalidOperationException($"Database startup validation failed: There are {pendingMigrations.Count()} pending migrations that need to be applied.");
+        }
+        await db.Database.MigrateAsync();
+    }
+    else
+    {
+        await db.Database.EnsureCreatedAsync();
+    }
+}
+
 app.Run();
