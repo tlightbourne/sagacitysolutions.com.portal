@@ -15,7 +15,10 @@ var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddOpenApi();
 builder.Services.AddScoped<IRequestContext, RequestContext>();
 builder.Services.AddDbContext<PortalDbContext>(options =>
-    options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
+{
+    var connectionString = builder.Configuration.GetConnectionString("DefaultConnection");
+        options.UseNpgsql(connectionString);
+});
 builder.Services.AddTransient<IReadOnlyRepository, ReadOnlyRepository>();
 builder.Services.AddTransient(typeof(IWriteRepository<>), typeof(WriteRepository<>));
 builder.Services.AddMediatR(cfg => cfg.RegisterServicesFromAssemblies(

@@ -1,12 +1,55 @@
+using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Mvc.Testing;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Options;
 using Moq;
 using sagacitysolutions.com.portal.Application.Identity;
 using sagacitysolutions.com.portal.Infrastructure.Data;
+using System.Linq;
+using System.Security.Claims;
+using System.Text.Encodings.Web;
+
 namespace sagacitysolutions.com.portal.WebApi.Tests.Host
 {
+    public class TestAuthHandler : AuthenticationHandler<AuthenticationSchemeOptions>
+    {
+        public TestAuthHandler(IOptionsMonitor<AuthenticationSchemeOptions> options,
+            ILoggerFactory logger, UrlEncoder encoder)
+            : base(options, logger, encoder)
+        {
+        }
+
+        protected override Task<AuthenticateResult> HandleAuthenticateAsync()
+        {
+            var claimsList = new List<Claim>
+            {
+                new Claim(ClaimTypes.Name, "TestUser"),
+                new Claim("scope", "read write"),
+                new Claim("tenant_ids", "zzp1s6s0mqqc"),
+                new Claim("authorized_tenants", "zzp1s6s0mqqc")
+            };
+
+            // Dynamically authorize the project ID in the route to make tests pass seamlessly
+            if (Context.Request.RouteValues.TryGetValue("projectId", out var projectIdObj) && projectIdObj != null)
+            {
+                claimsList.Add(new Claim("portal_project_ids", projectIdObj.ToString()!));
+            }
+            else
+            {
+                claimsList.Add(new Claim("portal_project_ids", "11111111-1111-1111-1111-111111111111"));
+            }
+
+            var identity = new ClaimsIdentity(claimsList, "Bearer");
+            var principal = new ClaimsPrincipal(identity);
+            var ticket = new AuthenticationTicket(principal, "Bearer");
+
+            return Task.FromResult(AuthenticateResult.Success(ticket));
+        }
+    }
+
     public class PortalWebHostFactory : WebApplicationFactory<Program>
     {
         private string _connectionString;
@@ -17,8 +60,12 @@ namespace sagacitysolutions.com.portal.WebApi.Tests.Host
             _connectionString = connectionString;
             RequestContextMock = requestContextMock;
         }
+
         protected override void ConfigureWebHost(IWebHostBuilder builder)
         {
+            // Configure database connection and provider settings dynamically
+            builder.UseSetting("ConnectionStrings:DefaultConnection", _connectionString);
+
             builder.ConfigureServices(services =>
             {
                 var requestContextDescriptor = services.SingleOrDefault(
@@ -29,19 +76,20 @@ namespace sagacitysolutions.com.portal.WebApi.Tests.Host
                 }
                 services.AddScoped(s => RequestContextMock.Object);
 
-                // Remove the existing DbContext registration
-                var dbContextDescriptor = services.SingleOrDefault(
-                    d => d.ServiceType == typeof(DbContextOptions<PortalDbContext>));
-                if (dbContextDescriptor != null)
+                // Remove all existing authentication configuration options to prevent duplicate schemes
+                var authOptionsDescriptors = services.Where(d => d.ServiceType == typeof(IConfigureOptions<AuthenticationOptions>)).ToList();
+                foreach (var descriptor in authOptionsDescriptors)
                 {
-                    services.Remove(dbContextDescriptor);
+                    services.Remove(descriptor);
                 }
 
-                // Add a new DbContext registration for testing
-                services.AddDbContext<PortalDbContext>(options =>
+                // Mock Bearer Authentication and Authorization to bypass real OIDC endpoints
+                services.AddAuthentication(options =>
                 {
-                    options.UseSqlServer(_connectionString);
-                });
+                    options.DefaultAuthenticateScheme = "Bearer";
+                    options.DefaultChallengeScheme = "Bearer";
+                })
+                .AddScheme<AuthenticationSchemeOptions, TestAuthHandler>("Bearer", options => {});
             });
         }
     }
