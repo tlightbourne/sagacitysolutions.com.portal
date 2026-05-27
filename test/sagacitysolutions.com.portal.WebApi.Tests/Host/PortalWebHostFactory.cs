@@ -16,6 +16,8 @@ namespace sagacitysolutions.com.portal.WebApi.Tests.Host
 {
     public class TestAuthHandler : AuthenticationHandler<AuthenticationSchemeOptions>
     {
+        public static List<Guid> AuthorizedProjectIds { get; } = new List<Guid>();
+
         public TestAuthHandler(IOptionsMonitor<AuthenticationSchemeOptions> options,
             ILoggerFactory logger, UrlEncoder encoder)
             : base(options, logger, encoder)
@@ -32,8 +34,12 @@ namespace sagacitysolutions.com.portal.WebApi.Tests.Host
                 new Claim("authorized_tenants", "zzp1s6s0mqqc")
             };
 
-            // Dynamically authorize the project ID in the route to make tests pass seamlessly
-            if (Context.Request.RouteValues.TryGetValue("projectId", out var projectIdObj) && projectIdObj != null)
+            // If test class declared explicit authorized project IDs, use them. Otherwise dynamic route/fallback.
+            if (AuthorizedProjectIds.Any())
+            {
+                claimsList.Add(new Claim("portal_project_ids", string.Join(",", AuthorizedProjectIds)));
+            }
+            else if (Context.Request.RouteValues.TryGetValue("projectId", out var projectIdObj) && projectIdObj != null)
             {
                 claimsList.Add(new Claim("portal_project_ids", projectIdObj.ToString()!));
             }

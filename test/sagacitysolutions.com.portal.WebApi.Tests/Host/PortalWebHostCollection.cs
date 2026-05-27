@@ -21,8 +21,14 @@ public class PortalWebHostBase : IAsyncLifetime
 
     public async Task InitializeAsync()
     {
+        TestAuthHandler.AuthorizedProjectIds.Clear();
         _fixture.WebHostFactory.RequestContextMock.Invocations.Clear();
         _fixture.WebHostFactory.RequestContextMock.Reset();
+        
+        _fixture.WebHostFactory.RequestContextMock
+            .Setup(r => r.GetClaimValue("authorized_tenants"))
+            .Returns(_fixture.AuthorizedTenantId.ToString());
+
         await _fixture.RespawnAsync();
     }
 
