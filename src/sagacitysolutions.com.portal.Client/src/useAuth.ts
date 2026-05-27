@@ -19,10 +19,10 @@ export function useAuth(): AuthState {
     async function check() {
       setState({ status: "loading" });
       try {
-        const user = await fetchMe();
+        const data = await fetchMe();
         if (!cancelled) {
           setState(
-            user ? { status: "authenticated", user } : { status: "unauthenticated" }
+            data?.username ? { status: "authenticated", user: data } : { status: "unauthenticated" }
           );
         }
       } catch {

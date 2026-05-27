@@ -6,19 +6,24 @@
 const BFF_ORIGIN = import.meta.env.VITE_BFF_ORIGIN ?? "http://localhost:5000";
 
 export interface UserClaims {
-  sub: string;
-  name?: string;
-  username?: string;
-  email?: string;
-  picture?: string;
+  username: string;
+  organizations: Record<string, string>;
+  portal_project_ids: string[];
+}
+
+export async function fetchApi(url: string, options?: RequestInit) {
+  const res = await fetch(`${BFF_ORIGIN}/api/${url}`, { ...options, credentials: "include" });
+  if (res.status === 401) return null;
+  if (!res.ok) throw new Error(`/api/${url} failed: ${res.status}`);
+  return res.json();
 }
 
 /** Fetch the current user from the BFF. Returns null when not authenticated. */
-export async function fetchMe(): Promise<UserClaims | null> {
-  const res = await fetch(`${BFF_ORIGIN}/api/me`, { credentials: "include" });
+export async function fetchMe() {
+  const res = await fetch(`${BFF_ORIGIN}/me`, { credentials: "include" });
   if (res.status === 401) return null;
-  if (!res.ok) throw new Error(`/api/me failed: ${res.status}`);
-  return res.json() as Promise<UserClaims>;
+  if (!res.ok) throw new Error(`/me failed: ${res.status}`);
+  return res.json();
 }
 
 /** Navigate the top-level window to the BFF login route. */

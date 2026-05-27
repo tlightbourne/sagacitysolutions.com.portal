@@ -6,7 +6,7 @@
  * We create a new LogtoClient for every request so the session binding is fresh.
  */
 
-import LogtoClient from "@logto/node";
+import LogtoClient, { UserScope } from "@logto/node";
 
 /**
  * Build a session-backed storage adapter for @logto/node.
@@ -36,6 +36,8 @@ export function getLogtoClient(session, res) {
       endpoint: process.env.LOGTO_ENDPOINT,
       appId: process.env.LOGTO_APP_ID,
       appSecret: process.env.LOGTO_APP_SECRET,
+      resources: [process.env.PORTAL_API],
+      scopes: [UserScope.Organizations, UserScope.OrganizationRoles, UserScope.CustomData, "read", "write"],
     },
     {
       storage: makeStorage(session),

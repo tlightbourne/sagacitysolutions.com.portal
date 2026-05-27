@@ -9,6 +9,7 @@ const app = express();
 const PORT = process.env.PORT ?? 5000;
 const BASE_URL = process.env.BASE_URL ?? `http://localhost:${PORT}`;
 const CLIENT_ORIGIN = process.env.CLIENT_ORIGIN ?? "http://localhost:5173";
+const PORTAL_API = process.env.PORTAL_API ?? "http://localhost:5092";
 
 // ── Middleware ────────────────────────────────────────────────────────────────
 
@@ -35,6 +36,44 @@ app.use(
     },
   })
 );
+
+// Gateway route to downstream services
+app.get("/api/*", async (req, res) => {
+  const client = getLogtoClient(req.session, res);
+  const isAuthenticated = await client.isAuthenticated();
+  if (!isAuthenticated) {
+    return res.status(401).json({ error: "Not authenticated" });
+  }
+
+  try {
+    // Get the token to access the downstream service
+    const token = await client.getAccessToken(PORTAL_API);
+
+    // Create a new request to the downstream service
+    const downstreamRequest = new Request(`${PORTAL_API}${req.path}`, {
+      method: req.method,
+      headers: {
+        Authorization: `Bearer ${token}`,
+        ...req.headers,
+      },
+      body: req.method === "GET" || req.method === "HEAD" ? undefined : JSON.stringify(req.body),
+    });
+
+    const response = await fetch(downstreamRequest);
+
+    // Set the response headers to match the downstream service
+    res.set(response.headers);
+    res.status(response.status);
+    res.send(response.body);
+  } catch (error) {
+    console.error("Downstream API fetch failed:", error);
+    res.status(502).json({
+      error: "Bad Gateway",
+      message: "Unable to connect to the downstream service. Please ensure the backend WebApi is running.",
+      details: error.message,
+    });
+  }
+})
 
 // ── Auth routes ───────────────────────────────────────────────────────────────
 
@@ -83,7 +122,7 @@ app.get("/auth/logout", async (req, res) => {
  * GET /api/me
  * Returns the authenticated user's claims, or 401 if not signed in.
  */
-app.get("/api/me", async (req, res) => {
+app.get("/me", async (req, res) => {
   const client = getLogtoClient(req.session);
 
   const isAuthenticated = await client.isAuthenticated();
@@ -92,7 +131,22 @@ app.get("/api/me", async (req, res) => {
   }
 
   const claims = await client.getIdTokenClaims();
-  res.json(claims);
+  const orgClaims = await client.getOrganizationTokenClaims("zzp1s6s0mqqc");
+  const accessTokenClaims = await client.getAccessTokenClaims(PORTAL_API);
+
+  const username = claims.username || claims.name || claims.sub;
+  const organizations = {};
+  if (orgClaims) {
+    const orgId = orgClaims.organization_id || orgClaims.org_id || "zzp1s6s0mqqc";
+    const orgName = orgClaims.organization_name || orgClaims.name || "Sagacity Solutions";
+    organizations[orgId] = orgName;
+  }
+
+  res.json({
+    username,
+    organizations,
+    portal_project_ids: accessTokenClaims?.portal_project_ids || [],
+  });
 });
 
 /**

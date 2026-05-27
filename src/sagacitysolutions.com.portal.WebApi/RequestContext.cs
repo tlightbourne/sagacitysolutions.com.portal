@@ -3,9 +3,24 @@ using sagacitysolutions.com.portal.Application.Identity;
 namespace sagacitysolutions.com.portal.WebApi;
 public class RequestContext : IRequestContext
 {
-    private IHttpContextAccessor _httpContextAccessor;
+    private readonly IHttpContextAccessor _httpContextAccessor;
 
-    public Guid? ProjectId { get; set; }
+    public Guid? ProjectId
+    {
+        get
+        {
+            var httpContext = _httpContextAccessor.HttpContext;
+            if (httpContext != null)
+            {
+                if (httpContext.Request.RouteValues.TryGetValue("projectId", out var val) &&
+                    Guid.TryParse(val?.ToString(), out var projectId))
+                {
+                    return projectId;
+                }
+            }
+            return null;
+        }
+    }
 
     public RequestContext(IHttpContextAccessor httpContextAccessor)
     {
