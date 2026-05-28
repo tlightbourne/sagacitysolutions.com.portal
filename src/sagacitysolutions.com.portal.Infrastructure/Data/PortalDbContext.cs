@@ -34,6 +34,7 @@ public class PortalDbContext : DbContext
                   .ValueGeneratedOnAdd()
                   .HasValueGenerator<NpgsqlSequentialGuidValueGenerator>();
             entity.Property(e => e.Name).HasMaxLength(100);
+            entity.Property(e => e.Status).HasConversion<string>().HasMaxLength(50);
         });
 
         modelBuilder.Entity<WorkTask>(entity =>

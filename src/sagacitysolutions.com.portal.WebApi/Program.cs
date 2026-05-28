@@ -15,6 +15,10 @@ var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddOpenApi();
 builder.Services.AddHttpContextAccessor();
 builder.Services.AddScoped<IRequestContext, RequestContext>();
+builder.Services.Configure<Microsoft.AspNetCore.Http.Json.JsonOptions>(options =>
+{
+    options.SerializerOptions.Converters.Add(new System.Text.Json.Serialization.JsonStringEnumConverter());
+});
 builder.Services.AddDbContext<PortalDbContext>(options =>
 {
     var connectionString = builder.Configuration.GetConnectionString("DefaultConnection");
@@ -85,20 +89,7 @@ app.MapTaskRoutes();
 using (var scope = app.Services.CreateScope())
 {
     var db = scope.ServiceProvider.GetRequiredService<PortalDbContext>();
-    var migrations = db.Database.GetMigrations();
-    if (migrations.Any())
-    {
-        var pendingMigrations = await db.Database.GetPendingMigrationsAsync();
-        if (pendingMigrations.Any())
-        {
-            throw new InvalidOperationException($"Database startup validation failed: There are {pendingMigrations.Count()} pending migrations that need to be applied.");
-        }
-        await db.Database.MigrateAsync();
-    }
-    else
-    {
-        await db.Database.EnsureCreatedAsync();
-    }
+    await db.Database.MigrateAsync();
 }
 
 app.Run();

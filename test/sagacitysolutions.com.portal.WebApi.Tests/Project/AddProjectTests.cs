@@ -29,6 +29,7 @@ public class AddProjectTests : PortalWebHostBase
         Assert.NotEqual(Guid.Empty, content.Id);
         Assert.Equal(_fixture.AuthorizedTenantId, content.TenantId);
         Assert.Equal("New Integration Project", content.Name);
+        Assert.Equal("Active", content.Status);
 
         // Verify database state
         using var db = _fixture.GetPortalDbContext();
@@ -36,6 +37,7 @@ public class AddProjectTests : PortalWebHostBase
         Assert.NotNull(dbProject);
         Assert.Equal("New Integration Project", dbProject.Name);
         Assert.Equal(_fixture.AuthorizedTenantId, dbProject.TenantId);
+        Assert.Equal(ProjectStatus.Active, dbProject.Status);
     }
 
     [Fact]

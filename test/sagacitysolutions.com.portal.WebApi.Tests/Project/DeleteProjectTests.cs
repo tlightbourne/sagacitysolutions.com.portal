@@ -78,13 +78,21 @@ public class DeleteProjectTests : PortalWebHostBase
             await db.SaveChangesAsync();
         }
 
-        // Keep TestAuthHandler.AuthorizedProjectIds empty so project is NOT authorized
+        // Override CustomPortalProjectIds to a random ID to prevent automatic fallback to the route's projectId
+        TestAuthHandler.CustomPortalProjectIds = Guid.NewGuid().ToString();
 
-        // Act
-        var response = await _client.DeleteAsync($"/api/projects/{project.Id}");
+        try
+        {
+            // Act
+            var response = await _client.DeleteAsync($"/api/projects/{project.Id}");
 
-        // Assert
-        Assert.Equal(HttpStatusCode.Forbidden, response.StatusCode);
+            // Assert
+            Assert.Equal(HttpStatusCode.Forbidden, response.StatusCode);
+        }
+        finally
+        {
+            TestAuthHandler.CustomPortalProjectIds = null;
+        }
     }
 
     [Fact]

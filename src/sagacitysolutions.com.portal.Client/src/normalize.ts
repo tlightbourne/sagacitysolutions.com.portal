@@ -9,6 +9,7 @@ export function normalizeProject(p: any): Project {
     id: p.id ?? p.Id,
     tenantId: p.tenantId ?? p.TenantId,
     name: p.name ?? p.Name,
+    status: p.status ?? p.Status ?? "Active",
   };
 }
 

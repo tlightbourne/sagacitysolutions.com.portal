@@ -30,8 +30,11 @@ export interface WorkTask {
   taskLinks?: TaskLink[];
 }
 
+export type ProjectStatus = "Proposed" | "Active" | "OnHold" | "Completed" | "Archived";
+
 export interface Project {
   id: string;
   tenantId: string;
   name: string;
+  status: ProjectStatus;
 }

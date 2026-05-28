@@ -114,7 +114,9 @@ export function ProjectsPanel({
                 {project.name}
               </span>
               <div className="project-meta">
-                <span className="project-badge">Active</span>
+                <span className={`project-badge status-${project.status.toLowerCase()}`}>
+                  {project.status}
+                </span>
                 <span className="project-id-mini">
                   {(project.id || "").substring(0, 8)}...
                 </span>

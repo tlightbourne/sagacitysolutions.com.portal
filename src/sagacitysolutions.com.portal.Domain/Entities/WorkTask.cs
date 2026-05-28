@@ -1,4 +1,4 @@
-﻿namespace sagacitysolutions.com.portal.Domain.Entities;
+namespace sagacitysolutions.com.portal.Domain.Entities;
 
 public class WorkTask
 {
@@ -21,6 +21,7 @@ public class WorkTask
 #pragma warning disable CS8618 // Non-nullable field must contain a non-null value when exiting constructor. Consider adding the 'required' modifier or declaring as nullable.
     private WorkTask() { }
 #pragma warning restore CS8618 // Non-nullable field must contain a non-null value when exiting constructor. Consider adding the 'required' modifier or declaring as nullable.
+    [System.Text.Json.Serialization.JsonConstructor]
     public WorkTask(Guid id, Guid projectId, string title, WorkTaskType type, WorkTaskStatus status, byte order,
         Guid? parentId = null, string? description = null, byte? hours = null, DateTime? completedAt = null)
     {

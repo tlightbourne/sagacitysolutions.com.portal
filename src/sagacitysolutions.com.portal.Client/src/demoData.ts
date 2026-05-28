@@ -5,16 +5,19 @@ export const DEMO_PROJECTS: Project[] = [
     id: "11111111-1111-1111-1111-111111111111",
     tenantId: "zzp1s6s0mqqc",
     name: "Acme Corp Cloud Migration",
+    status: "Active",
   },
   {
     id: "22222222-2222-2222-2222-222222222222",
     tenantId: "zzp1s6s0mqqc",
     name: "Fintech Core Ledger API",
+    status: "Active",
   },
   {
     id: "33333333-3333-3333-3333-333333333333",
     tenantId: "zzp1s6s0mqqc",
     name: "Logistics Dashboard & Analytics",
+    status: "Completed",
   },
 ];
 

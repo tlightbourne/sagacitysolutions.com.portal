@@ -924,3 +924,29 @@
   font-size: 0.65rem;
 }
 
+/* ── Project Status Badges ── */
+.project-badge.status-proposed {
+  background: var(--status-not-started-bg);
+  color: var(--status-not-started-text);
+}
+
+.project-badge.status-active {
+  background: var(--status-in-progress-bg);
+  color: var(--status-in-progress-text);
+}
+
+.project-badge.status-onhold {
+  background: rgba(245, 158, 11, 0.12);
+  color: #f59e0b;
+}
+
+.project-badge.status-completed {
+  background: var(--status-completed-bg);
+  color: var(--status-completed-text);
+}
+
+.project-badge.status-archived {
+  background: var(--status-blocked-bg);
+  color: var(--status-blocked-text);
+}
+

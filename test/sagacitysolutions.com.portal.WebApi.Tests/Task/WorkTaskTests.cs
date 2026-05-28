@@ -9,6 +9,12 @@ namespace sagacitysolutions.com.portal.WebApi.Tests.TaskTests;
 
 public class WorkTaskTests : PortalWebHostBase
 {
+    private static readonly System.Text.Json.JsonSerializerOptions _jsonOptions = new()
+    {
+        PropertyNamingPolicy = System.Text.Json.JsonNamingPolicy.CamelCase,
+        Converters = { new System.Text.Json.Serialization.JsonStringEnumConverter() }
+    };
+
     public WorkTaskTests(PortalWebHostFixture fixture) : base(fixture)
     {
     }
@@ -34,7 +40,7 @@ public class WorkTaskTests : PortalWebHostBase
 
         // Assert
         response.EnsureSuccessStatusCode();
-        var content = await response.Content.ReadFromJsonAsync<List<WorkTask>>();
+        var content = await response.Content.ReadFromJsonAsync<List<WorkTask>>(_jsonOptions);
         Assert.NotNull(content);
         Assert.NotEmpty(content);
     }
@@ -96,7 +102,7 @@ public class WorkTaskTests : PortalWebHostBase
 
             // Assert
             response.EnsureSuccessStatusCode();
-            var content = await response.Content.ReadFromJsonAsync<List<WorkTask>>();
+            var content = await response.Content.ReadFromJsonAsync<List<WorkTask>>(_jsonOptions);
             Assert.NotNull(content);
             Assert.NotEmpty(content);
             Assert.Contains(content, t => t.Title == "Wildcard Test Task");

@@ -54,7 +54,7 @@ public class DbTestFixture : IAsyncLifetime
     {
         await _dbContainer.StartAsync();
         using var db = GetPortalDbContext();
-        await db.Database.EnsureCreatedAsync();
+        await db.Database.MigrateAsync();
     }
 
     public virtual async Task DisposeAsync()
