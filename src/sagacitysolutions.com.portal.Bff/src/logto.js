@@ -37,7 +37,16 @@ export function getLogtoClient(session, res) {
       appId: process.env.LOGTO_APP_ID,
       appSecret: process.env.LOGTO_APP_SECRET,
       resources: [process.env.PORTAL_API],
-      scopes: [UserScope.Organizations, UserScope.OrganizationRoles, UserScope.CustomData, "read", "write"],
+      scopes: [
+        UserScope.Organizations,
+        UserScope.OrganizationRoles,
+        UserScope.CustomData,
+        UserScope.Roles,
+        "read:projects",
+        "write:projects",
+        "read:tasks",
+        "write:tasks"
+      ],
     },
     {
       storage: makeStorage(session),

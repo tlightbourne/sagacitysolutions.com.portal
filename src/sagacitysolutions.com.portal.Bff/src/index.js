@@ -131,20 +131,21 @@ app.get("/me", async (req, res) => {
   }
 
   const claims = await client.getIdTokenClaims();
-  const orgClaims = await client.getOrganizationTokenClaims("zzp1s6s0mqqc");
   const accessTokenClaims = await client.getAccessTokenClaims(PORTAL_API);
 
   const username = claims.username || claims.name || claims.sub;
-  const organizations = {};
-  if (orgClaims) {
-    const orgId = orgClaims.organization_id || orgClaims.org_id || "zzp1s6s0mqqc";
-    const orgName = orgClaims.organization_name || orgClaims.name || "Sagacity Solutions";
-    organizations[orgId] = orgName;
+  let organizations = {};
+  if (claims.organization_data && claims.organization_data.length) {
+    organizations = claims.organization_data.reduce((orgs, current) => {
+      orgs[current.id] = current.name;
+      return orgs;
+    }, {})
   }
 
   res.json({
     username,
     organizations,
+    scope: accessTokenClaims?.scope,
     portal_project_ids: accessTokenClaims?.portal_project_ids || [],
   });
 });
