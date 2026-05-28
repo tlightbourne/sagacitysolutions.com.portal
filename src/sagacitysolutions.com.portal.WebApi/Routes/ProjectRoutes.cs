@@ -8,11 +8,11 @@ public static class ProjectRoutes
 {
     public static void MapProjectRoutes(this WebApplication app)
     {
-        var group = app.MapGroup("/api/projects")
-                       .RequireAuthorization()
-                       .AddEndpointFilter(new ScopeAuthorizationFilter("read:projects"));
+        var readGroup = app.MapGroup("/api/projects")
+                           .RequireAuthorization()
+                           .AddEndpointFilter(new ScopeAuthorizationFilter("read:projects"));
 
-        group.MapGet("/", async (IMediator mediator, ClaimsPrincipal user) =>
+        readGroup.MapGet("/", async (IMediator mediator, ClaimsPrincipal user) =>
         {
             var portalProjectIds = user.FindAll("portal_project_ids")
                 .SelectMany(c => c.Value.Split(new[] { ',', ' ' }, StringSplitOptions.RemoveEmptyEntries))
@@ -29,6 +29,23 @@ public static class ProjectRoutes
 
             var projects = await mediator.Send(new GetProjectsRequest(projectIds));
             return Results.Ok(projects);
+        });
+
+        var writeGroup = app.MapGroup("/api/projects")
+                            .RequireAuthorization()
+                            .AddEndpointFilter(new ScopeAuthorizationFilter("write:projects"));
+
+        writeGroup.MapPost("/", async (AddProjectRequest request, IMediator mediator) =>
+        {
+            try
+            {
+                var project = await mediator.Send(request);
+                return Results.Created($"/api/projects/{project.Id}", project);
+            }
+            catch (ArgumentException ex)
+            {
+                return Results.BadRequest(ex.Message);
+            }
         });
     }
 }

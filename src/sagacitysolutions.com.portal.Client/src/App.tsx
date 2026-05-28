@@ -10,6 +10,7 @@ import { Header } from "./components/Header";
 import { ProjectsPanel } from "./components/ProjectsPanel";
 import { TasksPanel } from "./components/TasksPanel";
 import { TaskDetailsModal } from "./components/TaskDetailsModal";
+import { normalizeProject, normalizeTask } from "./normalize";
 
 function App() {
   const auth = useAuth();
@@ -32,8 +33,9 @@ function App() {
       try {
         const data = await fetchApi("projects");
         if (data && Array.isArray(data) && data.length > 0) {
-          setProjects(data);
-          setActiveProject(data[0]);
+          const normalized = data.map(normalizeProject);
+          setProjects(normalized);
+          setActiveProject(normalized[0]);
         } else {
           // No projects in DB or API empty -> Fallback to gorgeous demo data
           setProjects(DEMO_PROJECTS);
@@ -61,7 +63,8 @@ function App() {
       try {
         const data = await fetchApi(`projects/${currentProject.id}/tasks`);
         if (data && Array.isArray(data) && data.length > 0) {
-          setTasks(data);
+          const normalized = data.map(normalizeTask);
+          setTasks(normalized);
         } else {
           // No tasks found or endpoint failed -> Use beautiful mock tasks for that project
           setTasks(DEMO_TASKS[currentProject.id] || []);
@@ -97,6 +100,26 @@ function App() {
     }
   };
 
+  const handleAddProject = async (tenantId: string, name: string) => {
+    const newProject = await fetchApi("projects", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({ tenantId, name }),
+    });
+
+    console.log("newProject:", newProject);
+
+    if (newProject) {
+      const normalizedProject = normalizeProject(newProject);
+      setProjects((prev) => [...prev, normalizedProject]);
+      setActiveProject(normalizedProject);
+    } else {
+      throw new Error("Failed to create project.");
+    }
+  };
+
   return (
     <div className="portal-container">
       {/* ── Modern Header ── */}
@@ -114,6 +137,9 @@ function App() {
           activeProjectId={activeProject?.id}
           portalProjectIds={user.portal_project_ids}
           onSelectProject={setActiveProject}
+          organizations={user.organizations}
+          scope={user.scope}
+          onAddProject={handleAddProject}
         />
 
         {/* Right Side: Tasks & Boards */}

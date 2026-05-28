@@ -38,4 +38,9 @@ public class WriteRepository<TEntity> : IWriteRepository<TEntity> where TEntity 
         _context.Set<TEntity>().Remove(entity);
         return Task.CompletedTask;
     }
+
+    public async Task SaveChangesAsync(CancellationToken cancellationToken = default)
+    {
+        await _context.SaveChangesAsync(cancellationToken);
+    }
 }

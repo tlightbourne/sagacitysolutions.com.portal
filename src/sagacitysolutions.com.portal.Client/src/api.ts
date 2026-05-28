@@ -9,6 +9,7 @@ export interface UserClaims {
   username: string;
   organizations: Record<string, string>;
   portal_project_ids: string[];
+  scope?: string;
 }
 
 export async function fetchApi(url: string, options?: RequestInit) {

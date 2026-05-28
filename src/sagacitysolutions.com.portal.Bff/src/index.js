@@ -38,7 +38,7 @@ app.use(
 );
 
 // Gateway route to downstream services
-app.get("/api/*", async (req, res) => {
+app.all("/api/*", async (req, res) => {
   const client = getLogtoClient(req.session, res);
   const isAuthenticated = await client.isAuthenticated();
   if (!isAuthenticated) {
@@ -49,22 +49,32 @@ app.get("/api/*", async (req, res) => {
     // Get the token to access the downstream service
     const token = await client.getAccessToken(PORTAL_API);
 
+    const headers = {
+      Authorization: `Bearer ${token}`,
+    };
+    if (req.headers["content-type"]) {
+      headers["Content-Type"] = req.headers["content-type"];
+    }
+    if (req.headers["accept"]) {
+      headers["Accept"] = req.headers["accept"];
+    }
+
     // Create a new request to the downstream service
     const downstreamRequest = new Request(`${PORTAL_API}${req.path}`, {
       method: req.method,
-      headers: {
-        Authorization: `Bearer ${token}`,
-        ...req.headers,
-      },
+      headers,
       body: req.method === "GET" || req.method === "HEAD" ? undefined : JSON.stringify(req.body),
     });
 
     const response = await fetch(downstreamRequest);
 
     // Set the response headers to match the downstream service
-    res.set(response.headers);
+    response.headers.forEach((value, key) => {
+      res.setHeader(key, value);
+    });
     res.status(response.status);
-    res.send(response.body);
+    const arrayBuffer = await response.arrayBuffer();
+    res.send(Buffer.from(arrayBuffer));
   } catch (error) {
     console.error("Downstream API fetch failed:", error);
     res.status(502).json({
