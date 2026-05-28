@@ -32,7 +32,7 @@ export function TaskCard({ task, onClick }: TaskCardProps) {
           {task.hours ? `${task.hours} hrs` : "N/A"}
         </div>
         {task.children && task.children.length > 0 && (
-          <div style={{ display: "flex", alignItems: "center", gap: "3px" }}>
+          <div className="task-subtasks-count">
             <svg
               width="12"
               height="12"

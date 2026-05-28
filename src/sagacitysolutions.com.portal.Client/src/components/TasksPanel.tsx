@@ -49,39 +49,19 @@ export function TasksPanel({
         </div>
 
         {/* Search and Filters */}
-        <div style={{ display: "flex", gap: "0.75rem", alignItems: "center" }}>
+        <div className="tasks-filter-container">
           <input
             type="text"
             placeholder="Search tasks..."
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            style={{
-              background: "rgba(255, 255, 255, 0.03)",
-              border: "1px solid rgba(170, 59, 255, 0.15)",
-              padding: "0.55rem 1rem",
-              borderRadius: "10px",
-              color: "white",
-              fontSize: "0.82rem",
-              width: "200px",
-              outline: "none",
-              transition: "var(--transition-fast)",
-            }}
-            className="search-input"
+            className="tasks-search-input search-input"
           />
 
           <select
             value={taskTypeFilter}
             onChange={(e) => setTaskTypeFilter(e.target.value)}
-            style={{
-              background: "rgba(255, 255, 255, 0.03)",
-              border: "1px solid rgba(170, 59, 255, 0.15)",
-              padding: "0.55rem 1rem",
-              borderRadius: "10px",
-              color: "white",
-              fontSize: "0.82rem",
-              outline: "none",
-              cursor: "pointer",
-            }}
+            className="tasks-type-select"
           >
             <option value="All">All Types</option>
             <option value="Development">Development</option>

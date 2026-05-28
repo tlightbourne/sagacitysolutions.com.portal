@@ -145,6 +145,7 @@
 .projects-panel {
   display: flex;
   flex-direction: column;
+  height: 100%;
   background: var(--bg-card);
   backdrop-filter: blur(16px);
   border: 1px solid var(--border);
@@ -173,6 +174,7 @@
 .projects-list {
   display: flex;
   flex-direction: column;
+  flex: 1;
   gap: 0.75rem;
   max-height: 50vh;
   overflow-y: auto;
@@ -185,6 +187,7 @@
   border-radius: 12px;
   padding: 1rem;
   cursor: pointer;
+  position: relative;
   text-align: left;
   transition: var(--transition-smooth);
   display: flex;
@@ -733,3 +736,191 @@
   font-size: 0.85rem;
   max-width: 320px;
 }
+
+/* ── Refactored Component Classes ── */
+
+.btn-delete-project {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  background: transparent;
+  border: none;
+  color: var(--status-blocked-text);
+  opacity: 0.75;
+  cursor: pointer;
+  padding: 4px;
+  border-radius: 6px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: var(--transition-fast);
+}
+
+.btn-delete-project:hover {
+  opacity: 1;
+  color: var(--danger);
+  background: var(--danger-bg);
+}
+
+.btn-add-project {
+  margin-top: 1rem;
+  width: 100%;
+  padding: 0.65rem;
+  background: linear-gradient(135deg, var(--accent) 0%, var(--accent-dark) 100%);
+  border: none;
+  border-radius: 8px;
+  color: white;
+  font-weight: 600;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  font-size: 0.85rem;
+  transition: var(--transition-fast);
+}
+
+.btn-add-project:hover {
+  filter: brightness(1.15);
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(170, 59, 255, 0.2);
+}
+
+.btn-add-project:active {
+  transform: translateY(0);
+}
+
+.modal-form {
+  display: flex;
+  flex-direction: column;
+  gap: 1.2rem;
+}
+
+.modal-input-group {
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+}
+
+.modal-input {
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid var(--border);
+  padding: 0.65rem 1rem;
+  border-radius: 8px;
+  color: white;
+  font-size: 0.85rem;
+  outline: none;
+  transition: var(--transition-fast);
+}
+
+.modal-input:focus {
+  border-color: var(--border-focus);
+  background: rgba(255, 255, 255, 0.06);
+  box-shadow: 0 0 10px rgba(170, 59, 255, 0.08);
+}
+
+.modal-select {
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid var(--border);
+  padding: 0.65rem 1rem;
+  border-radius: 8px;
+  color: white;
+  font-size: 0.85rem;
+  outline: none;
+  cursor: pointer;
+  transition: var(--transition-fast);
+}
+
+.modal-select:focus {
+  border-color: var(--border-focus);
+}
+
+.modal-select option {
+  background: var(--select-bg);
+  color: white;
+}
+
+.modal-error-message {
+  color: var(--danger);
+  font-size: 0.8rem;
+  margin: 0;
+}
+
+.modal-submit-btn {
+  padding: 0.75rem;
+  background: linear-gradient(135deg, var(--accent) 0%, var(--accent-dark) 100%);
+  border: none;
+  border-radius: 8px;
+  color: white;
+  font-weight: 600;
+  cursor: pointer;
+  font-size: 0.88rem;
+  margin-top: 0.5rem;
+  transition: var(--transition-fast);
+}
+
+.modal-submit-btn:hover:not(:disabled) {
+  filter: brightness(1.15);
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(170, 59, 255, 0.2);
+}
+
+.modal-submit-btn:disabled {
+  cursor: not-allowed;
+  opacity: 0.7;
+}
+
+.tasks-filter-container {
+  display: flex;
+  gap: 0.75rem;
+  align-items: center;
+}
+
+.tasks-search-input {
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid var(--border);
+  padding: 0.55rem 1rem;
+  border-radius: 10px;
+  color: white;
+  font-size: 0.82rem;
+  width: 200px;
+  outline: none;
+  transition: var(--transition-fast);
+}
+
+.tasks-search-input:focus {
+  border-color: var(--border-focus);
+  background: rgba(255, 255, 255, 0.06);
+}
+
+.tasks-type-select {
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid var(--border);
+  padding: 0.55rem 1rem;
+  border-radius: 10px;
+  color: white;
+  font-size: 0.82rem;
+  outline: none;
+  cursor: pointer;
+  transition: var(--transition-fast);
+}
+
+.tasks-type-select:focus {
+  border-color: var(--border-focus);
+}
+
+.tasks-type-select option {
+  background: var(--select-bg);
+  color: white;
+}
+
+.task-subtasks-count {
+  display: flex;
+  align-items: center;
+  gap: 3px;
+}
+
+.project-id-mini {
+  font-size: 0.65rem;
+}
+

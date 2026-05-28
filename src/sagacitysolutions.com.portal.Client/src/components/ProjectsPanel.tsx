@@ -65,7 +65,7 @@ export function ProjectsPanel({
   };
 
   return (
-    <section className="projects-panel" style={{ display: 'flex', flexDirection: 'column', height: '100%' }}>
+    <section className="projects-panel">
       <h2 className="panel-title">
         <svg
           width="18"
@@ -84,7 +84,7 @@ export function ProjectsPanel({
         Active Projects
       </h2>
 
-      <div className="projects-list" style={{ flex: 1, overflowY: 'auto' }}>
+      <div className="projects-list">
         {projects.map((project) => {
           // If wildcard '*' is present user has access to all projects
           const isGranted =
@@ -108,14 +108,14 @@ export function ProjectsPanel({
                   onSelectProject(project);
                 }
               }}
-              style={{ opacity: isGranted ? 1 : 0.6, position: "relative", cursor: "pointer" }}
+              style={{ opacity: isGranted ? 1 : 0.6 }}
             >
               <span className="project-name" style={{ paddingRight: canDelete ? "24px" : "0px" }}>
                 {project.name}
               </span>
               <div className="project-meta">
                 <span className="project-badge">Active</span>
-                <span style={{ fontSize: "0.65rem" }}>
+                <span className="project-id-mini">
                   {(project.id || "").substring(0, 8)}...
                 </span>
               </div>
@@ -133,29 +133,6 @@ export function ProjectsPanel({
                         alert(err.message || "Failed to delete project.");
                       }
                     }
-                  }}
-                  style={{
-                    position: "absolute",
-                    top: "10px",
-                    right: "10px",
-                    background: "transparent",
-                    border: "none",
-                    color: "rgba(255, 77, 77, 0.75)",
-                    cursor: "pointer",
-                    padding: "4px",
-                    borderRadius: "4px",
-                    display: "flex",
-                    alignItems: "center",
-                    justifyContent: "center",
-                    transition: "all 0.2s ease",
-                  }}
-                  onMouseEnter={(e) => {
-                    e.currentTarget.style.color = "#ff4d4d";
-                    e.currentTarget.style.background = "rgba(255, 77, 77, 0.15)";
-                  }}
-                  onMouseLeave={(e) => {
-                    e.currentTarget.style.color = "rgba(255, 77, 77, 0.75)";
-                    e.currentTarget.style.background = "transparent";
                   }}
                   title="Delete Project"
                 >
@@ -185,23 +162,6 @@ export function ProjectsPanel({
           type="button"
           className="btn-add-project"
           onClick={() => setIsModalOpen(true)}
-          style={{
-            marginTop: "1rem",
-            width: "100%",
-            padding: "0.65rem",
-            background: "linear-gradient(135deg, #aa3bff 0%, #6a00f4 100%)",
-            border: "none",
-            borderRadius: "8px",
-            color: "white",
-            fontWeight: 600,
-            cursor: "pointer",
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "center",
-            gap: "6px",
-            fontSize: "0.85rem",
-            transition: "all 0.2s ease",
-          }}
         >
           <svg
             width="14"
@@ -249,13 +209,9 @@ export function ProjectsPanel({
             </div>
             <form
               onSubmit={handleSubmit}
-              className="modal-body"
-              style={{ display: "flex", flexDirection: "column", gap: "1.2rem" }}
+              className="modal-body modal-form"
             >
-              <div
-                className="details-description"
-                style={{ display: "flex", flexDirection: "column", gap: "0.4rem" }}
-              >
+              <div className="modal-input-group">
                 <span className="meta-label">Project Name</span>
                 <input
                   type="text"
@@ -263,42 +219,21 @@ export function ProjectsPanel({
                   value={newProjectName}
                   onChange={(e) => setNewProjectName(e.target.value)}
                   placeholder="e.g. Cloud Migration Phase 2"
-                  style={{
-                    background: "rgba(255, 255, 255, 0.03)",
-                    border: "1px solid rgba(170, 59, 255, 0.15)",
-                    padding: "0.65rem 1rem",
-                    borderRadius: "8px",
-                    color: "white",
-                    fontSize: "0.85rem",
-                    outline: "none",
-                  }}
+                  className="modal-input"
                 />
               </div>
 
-              <div
-                className="details-description"
-                style={{ display: "flex", flexDirection: "column", gap: "0.4rem" }}
-              >
+              <div className="modal-input-group">
                 <span className="meta-label">Organization (Tenant)</span>
                 <select
                   value={selectedTenantId}
                   onChange={(e) => setSelectedTenantId(e.target.value)}
-                  style={{
-                    background: "rgba(255, 255, 255, 0.03)",
-                    border: "1px solid rgba(170, 59, 255, 0.15)",
-                    padding: "0.65rem 1rem",
-                    borderRadius: "8px",
-                    color: "white",
-                    fontSize: "0.85rem",
-                    outline: "none",
-                    cursor: "pointer",
-                  }}
+                  className="modal-select"
                 >
                   {Object.keys(organizations).map((id) => (
                     <option
                       key={id}
                       value={id}
-                      style={{ background: "#1c1c28", color: "white" }}
                     >
                       {organizations[id]}
                     </option>
@@ -307,7 +242,7 @@ export function ProjectsPanel({
               </div>
 
               {error && (
-                <p style={{ color: "#ff4d4d", fontSize: "0.8rem", margin: 0 }}>
+                <p className="modal-error-message">
                   {error}
                 </p>
               )}
@@ -315,19 +250,7 @@ export function ProjectsPanel({
               <button
                 type="submit"
                 disabled={submitting}
-                style={{
-                  padding: "0.75rem",
-                  background:
-                    "linear-gradient(135deg, #aa3bff 0%, #6a00f4 100%)",
-                  border: "none",
-                  borderRadius: "8px",
-                  color: "white",
-                  fontWeight: 600,
-                  cursor: submitting ? "not-allowed" : "pointer",
-                  opacity: submitting ? 0.7 : 1,
-                  fontSize: "0.88rem",
-                  marginTop: "0.5rem",
-                }}
+                className="modal-submit-btn"
               >
                 {submitting ? "Creating..." : "Create Project"}
               </button>
