@@ -120,6 +120,24 @@ function App() {
     }
   };
 
+  const handleDeleteProject = async (projectId: string) => {
+    try {
+      await fetchApi(`projects/${projectId}`, {
+        method: "DELETE",
+      });
+    } catch (err) {
+      console.warn("Delete API failed, removing from local state:", err);
+    }
+
+    setProjects((prev) => {
+      const remaining = prev.filter((p) => p.id !== projectId);
+      if (activeProject?.id === projectId) {
+        setActiveProject(remaining.length > 0 ? remaining[0] : null);
+      }
+      return remaining;
+    });
+  };
+
   return (
     <div className="portal-container">
       {/* ── Modern Header ── */}
@@ -140,6 +158,7 @@ function App() {
           organizations={user.organizations}
           scope={user.scope}
           onAddProject={handleAddProject}
+          onDeleteProject={handleDeleteProject}
         />
 
         {/* Right Side: Tasks & Boards */}

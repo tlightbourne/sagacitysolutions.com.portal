@@ -47,5 +47,22 @@ public static class ProjectRoutes
                 return Results.BadRequest(ex.Message);
             }
         });
+
+        var deleteGroup = app.MapGroup("/api/projects/{projectId:guid}")
+                             .RequireAuthorization()
+                             .AddEndpointFilter<ProjectAuthorizationFilter>();
+
+        deleteGroup.MapDelete("/", async (Guid projectId, IMediator mediator) =>
+        {
+            try
+            {
+                await mediator.Send(new DeleteProjectRequest(projectId));
+                return Results.NoContent();
+            }
+            catch (InvalidOperationException ex)
+            {
+                return Results.NotFound(ex.Message);
+            }
+        });
     }
 }

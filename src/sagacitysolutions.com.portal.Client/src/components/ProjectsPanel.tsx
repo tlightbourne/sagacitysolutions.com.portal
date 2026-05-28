@@ -9,6 +9,7 @@ interface ProjectsPanelProps {
   organizations: Record<string, string>;
   scope?: string;
   onAddProject: (tenantId: string, name: string) => Promise<void>;
+  onDeleteProject: (projectId: string) => Promise<void>;
 }
 
 export function ProjectsPanel({
@@ -19,6 +20,7 @@ export function ProjectsPanel({
   organizations,
   scope,
   onAddProject,
+  onDeleteProject,
 }: ProjectsPanelProps) {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [newProjectName, setNewProjectName] = useState("");
@@ -89,23 +91,91 @@ export function ProjectsPanel({
             portalProjectIds.includes("*") ||
             portalProjectIds.includes(project.id);
 
+          const hasWriteScope = scopes.includes("write:projects");
+          const canDelete = hasWriteScope && isGranted;
+
           return (
-            <button
+            <div
               key={project.id}
+              role="button"
+              tabIndex={0}
               className={`project-card ${
                 activeProjectId === project.id ? "active" : ""
               }`}
               onClick={() => onSelectProject(project)}
-              style={{ opacity: isGranted ? 1 : 0.6 }}
+              onKeyDown={(e) => {
+                if (e.key === "Enter" || e.key === " ") {
+                  onSelectProject(project);
+                }
+              }}
+              style={{ opacity: isGranted ? 1 : 0.6, position: "relative", cursor: "pointer" }}
             >
-              <span className="project-name">{project.name}</span>
+              <span className="project-name" style={{ paddingRight: canDelete ? "24px" : "0px" }}>
+                {project.name}
+              </span>
               <div className="project-meta">
                 <span className="project-badge">Active</span>
                 <span style={{ fontSize: "0.65rem" }}>
                   {(project.id || "").substring(0, 8)}...
                 </span>
               </div>
-            </button>
+
+              {canDelete && (
+                <button
+                  type="button"
+                  className="btn-delete-project"
+                  onClick={async (e) => {
+                    e.stopPropagation();
+                    if (confirm(`Are you sure you want to delete the project "${project.name}"?`)) {
+                      try {
+                        await onDeleteProject(project.id);
+                      } catch (err: any) {
+                        alert(err.message || "Failed to delete project.");
+                      }
+                    }
+                  }}
+                  style={{
+                    position: "absolute",
+                    top: "10px",
+                    right: "10px",
+                    background: "transparent",
+                    border: "none",
+                    color: "rgba(255, 77, 77, 0.75)",
+                    cursor: "pointer",
+                    padding: "4px",
+                    borderRadius: "4px",
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "center",
+                    transition: "all 0.2s ease",
+                  }}
+                  onMouseEnter={(e) => {
+                    e.currentTarget.style.color = "#ff4d4d";
+                    e.currentTarget.style.background = "rgba(255, 77, 77, 0.15)";
+                  }}
+                  onMouseLeave={(e) => {
+                    e.currentTarget.style.color = "rgba(255, 77, 77, 0.75)";
+                    e.currentTarget.style.background = "transparent";
+                  }}
+                  title="Delete Project"
+                >
+                  <svg
+                    width="14"
+                    height="14"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                    stroke="currentColor"
+                    strokeWidth="2.5"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"
+                    />
+                  </svg>
+                </button>
+              )}
+            </div>
           );
         })}
       </div>
