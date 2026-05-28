@@ -70,4 +70,64 @@ public class ProjectTests : PortalWebHostBase
         Assert.NotNull(content);
         Assert.Empty(content);
     }
+
+    [Fact]
+    public async Task GetProjects_ReturnsOk_WithAllProjectsWhenWildcardAsteriskIsPresent()
+    {
+        // Arrange
+        var authorizedProject = new Project(_fixture.AuthorizedTenantId, "Authorized Test Project");
+        var anotherProject = new Project(_fixture.AuthorizedTenantId, "Another Test Project");
+
+        using (var db = _fixture.GetPortalDbContext())
+        {
+            await db.Set<Project>().AddRangeAsync(authorizedProject, anotherProject);
+            await db.SaveChangesAsync();
+        }
+
+        // Configure wildcard portal_project_ids claim
+        TestAuthHandler.CustomPortalProjectIds = "*";
+
+        try
+        {
+            var request = new HttpRequestMessage(HttpMethod.Get, "/api/projects");
+
+            // Act
+            var response = await _client.SendAsync(request);
+
+            // Assert
+            response.EnsureSuccessStatusCode();
+            var content = await response.Content.ReadFromJsonAsync<List<ProjectTestDto>>();
+            
+            Assert.NotNull(content);
+            Assert.Equal(2, content.Count);
+            Assert.Contains(content, p => p.Id == authorizedProject.Id);
+            Assert.Contains(content, p => p.Id == anotherProject.Id);
+        }
+        finally
+        {
+            TestAuthHandler.CustomPortalProjectIds = null;
+        }
+    }
+
+    [Fact]
+    public async Task GetProjects_ReturnsForbid_WhenScopeIsMissing()
+    {
+        // Arrange
+        TestAuthHandler.CustomScope = "write:projects"; // missing read:projects scope
+
+        try
+        {
+            var request = new HttpRequestMessage(HttpMethod.Get, "/api/projects");
+
+            // Act
+            var response = await _client.SendAsync(request);
+
+            // Assert
+            Assert.Equal(System.Net.HttpStatusCode.Forbidden, response.StatusCode);
+        }
+        finally
+        {
+            TestAuthHandler.CustomScope = null;
+        }
+    }
 }

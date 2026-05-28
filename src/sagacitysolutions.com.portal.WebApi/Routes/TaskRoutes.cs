@@ -7,7 +7,7 @@ public static class TaskRoutes
     public static void MapTaskRoutes(this WebApplication app)
     {
         var group = app.MapGroup("/api/projects/{projectId:guid}/tasks")
-                       .AddEndpointFilter<ProjectAuthorizationFilter>();
+                       .AddEndpointFilter<TaskAuthorizationFilter>();
 
         group.MapGet("/", async (IMediator mediator) =>
         {

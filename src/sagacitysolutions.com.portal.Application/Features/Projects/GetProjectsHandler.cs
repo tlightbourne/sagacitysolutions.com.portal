@@ -5,7 +5,7 @@ using sagacitysolutions.com.portal.Domain.Entities;
 
 namespace sagacitysolutions.com.portal.Application.Features.Projects;
 
-public record GetProjectsRequest(List<Guid> ProjectIds) : IRequest<IEnumerable<Project>>;
+public record GetProjectsRequest(List<Guid>? ProjectIds) : IRequest<IEnumerable<Project>>;
 
 public class GetProjectsHandler : IRequestHandler<GetProjectsRequest, IEnumerable<Project>>
 {

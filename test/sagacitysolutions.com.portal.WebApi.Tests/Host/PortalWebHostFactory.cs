@@ -17,6 +17,8 @@ namespace sagacitysolutions.com.portal.WebApi.Tests.Host
     public class TestAuthHandler : AuthenticationHandler<AuthenticationSchemeOptions>
     {
         public static List<Guid> AuthorizedProjectIds { get; } = new List<Guid>();
+        public static string? CustomScope { get; set; } = null;
+        public static string? CustomPortalProjectIds { get; set; } = null;
 
         public TestAuthHandler(IOptionsMonitor<AuthenticationSchemeOptions> options,
             ILoggerFactory logger, UrlEncoder encoder)
@@ -26,16 +28,21 @@ namespace sagacitysolutions.com.portal.WebApi.Tests.Host
 
         protected override Task<AuthenticateResult> HandleAuthenticateAsync()
         {
+            var scopes = CustomScope ?? "read:projects write:projects read:tasks write:tasks";
             var claimsList = new List<Claim>
             {
                 new Claim(ClaimTypes.Name, "TestUser"),
-                new Claim("scope", "read write"),
+                new Claim("scope", scopes),
                 new Claim("tenant_ids", "zzp1s6s0mqqc"),
                 new Claim("authorized_tenants", "zzp1s6s0mqqc")
             };
 
-            // If test class declared explicit authorized project IDs, use them. Otherwise dynamic route/fallback.
-            if (AuthorizedProjectIds.Any())
+            // If custom portal_project_ids is declared, use it. Otherwise use list, dynamic route, or fallback.
+            if (CustomPortalProjectIds != null)
+            {
+                claimsList.Add(new Claim("portal_project_ids", CustomPortalProjectIds));
+            }
+            else if (AuthorizedProjectIds.Any())
             {
                 claimsList.Add(new Claim("portal_project_ids", string.Join(",", AuthorizedProjectIds)));
             }

@@ -5,8 +5,8 @@ namespace sagacitysolutions.com.portal.Application.Features.Projects.Queries;
 
 public class GetProjectsSpecification : Specification<Project>
 {
-    public GetProjectsSpecification(List<Guid> projectIds)
-        : base(project => projectIds.Contains(project.Id))
+    public GetProjectsSpecification(List<Guid>? projectIds)
+        : base(project => projectIds == null || projectIds.Contains(project.Id))
     {
     }
 }
