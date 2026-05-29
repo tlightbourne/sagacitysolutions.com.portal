@@ -3,7 +3,7 @@ import { useAuth } from "./useAuth";
 import { login, logout, fetchApi } from "./api";
 import "./App.css";
 
-import type { Project, WorkTask, WorkTaskStatus } from "./types";
+import type { Project, WorkTask, WorkTaskStatus, ProjectStatus } from "./types";
 import { DEMO_PROJECTS, DEMO_TASKS } from "./demoData";
 import { WelcomeView } from "./components/WelcomeView";
 import { Header } from "./components/Header";
@@ -138,6 +138,26 @@ function App() {
     });
   };
 
+  const handleEditProject = async (projectId: string, name: string, status: ProjectStatus) => {
+    const updatedProject = await fetchApi(`projects/${projectId}`, {
+      method: "PUT",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({ projectId, name, status }),
+    });
+
+    if (updatedProject) {
+      const normalized = normalizeProject(updatedProject);
+      setProjects((prev) => prev.map((p) => p.id === projectId ? normalized : p));
+      if (activeProject?.id === projectId) {
+        setActiveProject(normalized);
+      }
+    } else {
+      throw new Error("Failed to update project.");
+    }
+  };
+
   return (
     <div className="portal-container">
       {/* ── Modern Header ── */}
@@ -159,6 +179,7 @@ function App() {
           scope={user.scope}
           onAddProject={handleAddProject}
           onDeleteProject={handleDeleteProject}
+          onEditProject={handleEditProject}
         />
 
         {/* Right Side: Tasks & Boards */}

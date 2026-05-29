@@ -16,4 +16,14 @@ public class Project
         Name = name;
         Status = status;
     }
+
+    public void Update(string name, ProjectStatus status)
+    {
+        if (string.IsNullOrWhiteSpace(name))
+        {
+            throw new ArgumentException("Project name cannot be empty.", nameof(name));
+        }
+        Name = name;
+        Status = status;
+    }
 }

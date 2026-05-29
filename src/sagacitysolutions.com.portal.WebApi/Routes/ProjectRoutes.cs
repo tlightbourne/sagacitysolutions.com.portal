@@ -31,11 +31,11 @@ public static class ProjectRoutes
             return Results.Ok(projects);
         });
 
-        var writeGroup = app.MapGroup("/api/projects")
-                            .RequireAuthorization()
-                            .AddEndpointFilter(new ScopeAuthorizationFilter("write:projects"));
+        var createGroup = app.MapGroup("/api/projects")
+                             .RequireAuthorization()
+                             .AddEndpointFilter(new ScopeAuthorizationFilter("write:projects"));
 
-        writeGroup.MapPost("/", async (AddProjectRequest request, IMediator mediator) =>
+        createGroup.MapPost("/", async (AddProjectRequest request, IMediator mediator) =>
         {
             try
             {
@@ -48,11 +48,33 @@ public static class ProjectRoutes
             }
         });
 
-        var deleteGroup = app.MapGroup("/api/projects/{projectId:guid}")
+        var modifyGroup = app.MapGroup("/api/projects/{projectId:guid}")
                              .RequireAuthorization()
                              .AddEndpointFilter<ProjectAuthorizationFilter>();
 
-        deleteGroup.MapDelete("/", async (Guid projectId, IMediator mediator) =>
+        modifyGroup.MapPut("/", async (Guid projectId, UpdateProjectRequest request, IMediator mediator) =>
+        {
+            if (projectId != request.ProjectId)
+            {
+                return Results.BadRequest("Project ID mismatch.");
+            }
+
+            try
+            {
+                var project = await mediator.Send(request);
+                return Results.Ok(project);
+            }
+            catch (ArgumentException ex)
+            {
+                return Results.BadRequest(ex.Message);
+            }
+            catch (InvalidOperationException ex)
+            {
+                return Results.NotFound(ex.Message);
+            }
+        });
+
+        modifyGroup.MapDelete("/", async (Guid projectId, IMediator mediator) =>
         {
             try
             {

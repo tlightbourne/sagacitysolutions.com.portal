@@ -950,3 +950,115 @@
   color: var(--status-blocked-text);
 }
 
+/* ── Project Action Buttons ── */
+.project-actions {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  display: flex;
+  gap: 4px;
+  z-index: 2;
+}
+
+.btn-edit-project, .btn-delete-project-new {
+  background: transparent;
+  border: none;
+  opacity: 0.75;
+  cursor: pointer;
+  padding: 4px;
+  border-radius: 6px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: var(--transition-fast);
+}
+
+.btn-edit-project {
+  color: var(--accent-light);
+}
+
+.btn-edit-project:hover {
+  opacity: 1;
+  color: white;
+  background: rgba(170, 59, 255, 0.2);
+}
+
+.btn-delete-project-new {
+  color: var(--status-blocked-text);
+}
+
+.btn-delete-project-new:hover {
+  opacity: 1;
+  color: var(--danger);
+  background: var(--danger-bg);
+}
+
+/* ── Clipboard ID copy button ── */
+.project-id-copy-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid rgba(255, 255, 255, 0.05);
+  color: var(--text-secondary);
+  font-size: 0.65rem;
+  padding: 2px 6px;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: var(--transition-fast);
+  line-height: 1;
+  font-family: inherit;
+}
+
+.project-id-copy-btn:hover {
+  background: rgba(170, 59, 255, 0.12);
+  border-color: rgba(170, 59, 255, 0.3);
+  color: var(--accent-light);
+}
+
+.project-id-copy-btn .copy-icon {
+  opacity: 0.6;
+}
+
+.project-id-copy-btn:hover .copy-icon {
+  opacity: 1;
+}
+
+/* ── Archive Toggle Button ── */
+.projects-filter-toggle {
+  display: flex;
+  justify-content: flex-end;
+  margin-top: -0.25rem;
+  margin-bottom: 0.5rem;
+}
+
+.btn-toggle-archived {
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  color: var(--text-secondary);
+  font-size: 0.72rem;
+  font-weight: 600;
+  padding: 0.35rem 0.65rem;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  transition: var(--transition-fast);
+}
+
+.btn-toggle-archived:hover {
+  background: rgba(170, 59, 255, 0.08);
+  border-color: rgba(170, 59, 255, 0.25);
+  color: var(--accent-light);
+}
+
+.btn-toggle-archived.active {
+  background: rgba(170, 59, 255, 0.12);
+  border-color: var(--accent);
+  color: var(--accent-light);
+  box-shadow: 0 0 10px rgba(170, 59, 255, 0.1);
+}
+
+
+
