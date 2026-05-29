@@ -16,7 +16,9 @@ export async function fetchApi(url: string, options?: RequestInit) {
   const res = await fetch(`${BFF_ORIGIN}/api/${url}`, { ...options, credentials: "include" });
   if (res.status === 401) return null;
   if (!res.ok) throw new Error(`/api/${url} failed: ${res.status}`);
-  return res.json();
+  
+  const text = await res.text();
+  return text ? JSON.parse(text) : null;
 }
 
 /** Fetch the current user from the BFF. Returns null when not authenticated. */
