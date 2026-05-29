@@ -1,4 +1,5 @@
 import type { WorkTask, WorkTaskStatus } from "../types";
+import { CloseIcon, ClockIcon, PaperclipIcon } from "./Icons";
 
 interface TaskDetailsModalProps {
   task: WorkTask;
@@ -17,20 +18,7 @@ export function TaskDetailsModal({
         <div className="modal-header">
           <h3>Task Specification</h3>
           <button type="button" className="btn-close" onClick={onClose}>
-            <svg
-              width="18"
-              height="18"
-              fill="none"
-              viewBox="0 0 24 24"
-              stroke="currentColor"
-              strokeWidth="2.5"
-            >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                d="M6 18L18 6M6 6l12 12"
-              />
-            </svg>
+            <CloseIcon />
           </button>
         </div>
 
@@ -56,20 +44,7 @@ export function TaskDetailsModal({
             <div className="meta-item">
               <span className="meta-label">Logged Hours</span>
               <span className="meta-value">
-                <svg
-                  width="14"
-                  height="14"
-                  fill="none"
-                  viewBox="0 0 24 24"
-                  stroke="currentColor"
-                  strokeWidth="2.5"
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"
-                  />
-                </svg>
+                <ClockIcon size={14} />
                 {task.hours ? `${task.hours} hours` : "None recorded"}
               </span>
             </div>
@@ -125,20 +100,7 @@ export function TaskDetailsModal({
                     className="attachment-card"
                     key={file.id}
                   >
-                    <svg
-                      width="14"
-                      height="14"
-                      fill="none"
-                      viewBox="0 0 24 24"
-                      stroke="currentColor"
-                      strokeWidth="2.5"
-                    >
-                      <path
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1"
-                      />
-                    </svg>
+                    <PaperclipIcon />
                     <span className="attachment-name">
                       {file.name || "Resource Link"}
                     </span>
