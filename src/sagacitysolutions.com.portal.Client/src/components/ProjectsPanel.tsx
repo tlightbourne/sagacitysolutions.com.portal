@@ -1,5 +1,7 @@
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import type { Project, ProjectStatus } from "../types";
+import { CreateProjectModal } from "./CreateProjectModal";
+import { EditProjectModal } from "./EditProjectModal";
 
 interface ProjectsPanelProps {
   projects: Project[];
@@ -25,18 +27,8 @@ export function ProjectsPanel({
   onEditProject,
 }: ProjectsPanelProps) {
   const [isModalOpen, setIsModalOpen] = useState(false);
-  const [newProjectName, setNewProjectName] = useState("");
-  const [selectedTenantId, setSelectedTenantId] = useState("");
-  const [submitting, setSubmitting] = useState(false);
-  const [error, setError] = useState("");
-
-  // Edit modal states
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [editingProject, setEditingProject] = useState<Project | null>(null);
-  const [editProjectName, setEditProjectName] = useState("");
-  const [editProjectStatus, setEditProjectStatus] = useState<ProjectStatus>("Active");
-  const [editSubmitting, setEditSubmitting] = useState(false);
-  const [editError, setEditError] = useState("");
 
   // Clipboard feedback state
   const [copiedProjectId, setCopiedProjectId] = useState<string | null>(null);
@@ -58,68 +50,12 @@ export function ProjectsPanel({
   const handleOpenEditModal = (e: React.MouseEvent, project: Project) => {
     e.stopPropagation();
     setEditingProject(project);
-    setEditProjectName(project.name);
-    setEditProjectStatus(project.status);
-    setEditError("");
     setIsEditModalOpen(true);
   };
-
-  const handleEditSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!editingProject) return;
-    if (!editProjectName.trim()) {
-      setEditError("Project name is required.");
-      return;
-    }
-
-    setEditSubmitting(true);
-    setEditError("");
-    try {
-      await onEditProject(editingProject.id, editProjectName.trim(), editProjectStatus);
-      setIsEditModalOpen(false);
-      setEditingProject(null);
-    } catch (err: any) {
-      setEditError(err.message || "Failed to update project.");
-    } finally {
-      setEditSubmitting(false);
-    }
-  };
-
-  // Keep selectedTenantId updated when organizations load
-  useEffect(() => {
-    const tenantIds = Object.keys(organizations);
-    if (tenantIds.length > 0 && !selectedTenantId) {
-      setSelectedTenantId(tenantIds[0]);
-    }
-  }, [organizations, selectedTenantId]);
 
   const scopes = scope?.split(" ") || [];
   const canAddProject =
     scopes.includes("write:projects") && Object.keys(organizations).length > 0;
-
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!newProjectName.trim()) {
-      setError("Project name is required.");
-      return;
-    }
-    if (!selectedTenantId) {
-      setError("Please select an organization.");
-      return;
-    }
-
-    setSubmitting(true);
-    setError("");
-    try {
-      await onAddProject(selectedTenantId, newProjectName.trim());
-      setIsModalOpen(false);
-      setNewProjectName("");
-    } catch (err: any) {
-      setError(err.message || "Failed to create project.");
-    } finally {
-      setSubmitting(false);
-    }
-  };
 
   const visibleProjects = projects.filter((p) => showArchived || p.status !== "Archived");
   const archivedCount = projects.filter((p) => p.status === "Archived").length;
@@ -281,8 +217,9 @@ export function ProjectsPanel({
                         if (confirm(`Are you sure you want to delete the project "${project.name}"?`)) {
                           try {
                             await onDeleteProject(project.id);
-                          } catch (err: any) {
-                            alert(err.message || "Failed to delete project.");
+                          } catch (err) {
+                            const message = err instanceof Error ? err.message : "Failed to delete project.";
+                            alert(message);
                           }
                         }
                       }}
@@ -336,156 +273,22 @@ export function ProjectsPanel({
       )}
 
       {isModalOpen && (
-        <div className="modal-overlay" onClick={() => setIsModalOpen(false)}>
-          <div className="modal-content" onClick={(e) => e.stopPropagation()}>
-            <div className="modal-header">
-              <h3>Create New Project</h3>
-              <button
-                type="button"
-                className="btn-close"
-                onClick={() => setIsModalOpen(false)}
-              >
-                <svg
-                  width="18"
-                  height="18"
-                  fill="none"
-                  viewBox="0 0 24 24"
-                  stroke="currentColor"
-                  strokeWidth="2.5"
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    d="M6 18L18 6M6 6l12 12"
-                  />
-                </svg>
-              </button>
-            </div>
-            <form
-              onSubmit={handleSubmit}
-              className="modal-body modal-form"
-            >
-              <div className="modal-input-group">
-                <span className="meta-label">Project Name</span>
-                <input
-                  type="text"
-                  required
-                  value={newProjectName}
-                  onChange={(e) => setNewProjectName(e.target.value)}
-                  placeholder="e.g. Cloud Migration Phase 2"
-                  className="modal-input"
-                />
-              </div>
-
-              <div className="modal-input-group">
-                <span className="meta-label">Organization (Tenant)</span>
-                <select
-                  value={selectedTenantId}
-                  onChange={(e) => setSelectedTenantId(e.target.value)}
-                  className="modal-select"
-                >
-                  {Object.keys(organizations).map((id) => (
-                    <option
-                      key={id}
-                      value={id}
-                    >
-                      {organizations[id]}
-                    </option>
-                  ))}
-                </select>
-              </div>
-
-              {error && (
-                <p className="modal-error-message">
-                  {error}
-                </p>
-              )}
-
-              <button
-                type="submit"
-                disabled={submitting}
-                className="modal-submit-btn"
-              >
-                {submitting ? "Creating..." : "Create Project"}
-              </button>
-            </form>
-          </div>
-        </div>
+        <CreateProjectModal
+          onClose={() => setIsModalOpen(false)}
+          organizations={organizations}
+          onAddProject={onAddProject}
+        />
       )}
 
       {isEditModalOpen && editingProject && (
-        <div className="modal-overlay" onClick={() => setIsEditModalOpen(false)}>
-          <div className="modal-content" onClick={(e) => e.stopPropagation()}>
-            <div className="modal-header">
-              <h3>Edit Project Details</h3>
-              <button
-                type="button"
-                className="btn-close"
-                onClick={() => setIsEditModalOpen(false)}
-              >
-                <svg
-                  width="18"
-                  height="18"
-                  fill="none"
-                  viewBox="0 0 24 24"
-                  stroke="currentColor"
-                  strokeWidth="2.5"
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    d="M6 18L18 6M6 6l12 12"
-                  />
-                </svg>
-              </button>
-            </div>
-            <form
-              onSubmit={handleEditSubmit}
-              className="modal-body modal-form"
-            >
-              <div className="modal-input-group">
-                <span className="meta-label">Project Name</span>
-                <input
-                  type="text"
-                  required
-                  value={editProjectName}
-                  onChange={(e) => setEditProjectName(e.target.value)}
-                  placeholder="e.g. Cloud Migration Phase 2"
-                  className="modal-input"
-                />
-              </div>
-
-              <div className="modal-input-group">
-                <span className="meta-label">Status</span>
-                <select
-                  value={editProjectStatus}
-                  onChange={(e) => setEditProjectStatus(e.target.value as ProjectStatus)}
-                  className="modal-select"
-                >
-                  <option value="Proposed">Proposed</option>
-                  <option value="Active">Active</option>
-                  <option value="OnHold">On Hold</option>
-                  <option value="Completed">Completed</option>
-                  <option value="Archived">Archived</option>
-                </select>
-              </div>
-
-              {editError && (
-                <p className="modal-error-message">
-                  {editError}
-                </p>
-              )}
-
-              <button
-                type="submit"
-                disabled={editSubmitting}
-                className="modal-submit-btn"
-              >
-                {editSubmitting ? "Saving..." : "Save Changes"}
-              </button>
-            </form>
-          </div>
-        </div>
+        <EditProjectModal
+          project={editingProject}
+          onClose={() => {
+            setIsEditModalOpen(false);
+            setEditingProject(null);
+          }}
+          onEditProject={onEditProject}
+        />
       )}
     </section>
   );
