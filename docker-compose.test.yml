@@ -1,0 +1,75 @@
+version: "3.9"
+
+services:
+  postgres-test:
+    image: postgres:14-alpine
+    container_name: sagacity-postgres-test
+    ports:
+      - "5432:5432"
+    environment:
+      POSTGRES_USER: logto
+      POSTGRES_PASSWORD: logto
+      POSTGRES_DB: logto
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U logto"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  logto-test:
+    image: svhd/logto:latest
+    container_name: sagacity-logto-test
+    depends_on:
+      postgres-test:
+        condition: service_healthy
+    ports:
+      - "3001:3001"
+      - "3002:3002"
+    environment:
+      # Core API / OIDC endpoint (used by clients and BFF)
+      ENDPOINT: http://localhost:3001
+      # Admin console endpoint
+      ADMIN_ENDPOINT: http://localhost:3002
+      DB_URL: postgresql://logto:logto@postgres-test:5432/logto
+    entrypoint: ["sh", "-c", "npm run cli db seed -- --swe && npm start"]
+
+  webapi-test:
+    build:
+      context: .
+      dockerfile: src/sagacitysolutions.com.portal.WebApi/Dockerfile
+    container_name: sagacity-webapi-test
+    depends_on:
+      postgres-test:
+        condition: service_healthy
+      logto-test:
+        condition: service_started
+    ports:
+      - "5092:5092"
+    environment:
+      ConnectionStrings__DefaultConnection: Host=postgres-test;Database=sagacitysolutions;Username=logto;Password=logto
+      ASPNETCORE_ENVIRONMENT: Development
+    extra_hosts:
+      - "localhost:host-gateway"
+
+  bff-test:
+    build:
+      context: src/sagacitysolutions.com.portal.Bff
+      dockerfile: Dockerfile
+    container_name: sagacity-bff-test
+    depends_on:
+      webapi-test:
+        condition: service_started
+      logto-test:
+        condition: service_started
+    ports:
+      - "5000:5000"
+    environment:
+      PORT: 5000
+      LOGTO_ENDPOINT: http://localhost:3001
+      LOGTO_APP_ID: moxwjx3you2zdb4dglttg
+      LOGTO_APP_SECRET: 7sAbhzKUoi42MtxZgEgIdU3LbQwTES1w
+      CLIENT_ORIGIN: http://localhost:5173
+      PORTAL_API: http://localhost:5092
+      SESSION_SECRET: change-me-in-production-use-a-long-random-string
+    extra_hosts:
+      - "localhost:host-gateway"

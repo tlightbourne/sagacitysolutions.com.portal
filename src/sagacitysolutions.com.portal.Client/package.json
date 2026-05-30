@@ -12,6 +12,7 @@
     "test:unit:watch": "vitest",
     "test:e2e": "playwright test",
     "test:e2e:ui": "playwright test --ui",
+    "seed:logto": "node e2e/scripts/seed-logto.js",
     "playwright:install": "playwright install --with-deps"
   },
   "dependencies": {

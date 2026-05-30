@@ -1,15 +1,26 @@
 import { test, expect } from "@playwright/test";
-import { setupMockRoutes } from "./mockRoutes";
-import { authenticateSession } from "./helpers/auth";
+import { authenticateSession, PREDEFINED_USERS } from "./helpers/auth";
+import {
+  mockMe,
+  mockGetProjects,
+  mockCreateProject,
+  mockGetTasks,
+  mockDeleteProject,
+} from "./mockRoutes";
+import {
+  createProject,
+  deleteActiveProject,
+  selectProject,
+  verifyProjectsList,
+  verifyActiveProjectName,
+  verifyTasksInColumn,
+  verifyUserSession,
+} from "./helpers/project";
 
 test.describe("Portal E2E - Unauthenticated Flow", () => {
   test("should display welcome view when unauthenticated", async ({ page }) => {
     // Intercept /me to return unauthenticated status specifically for this test
-    if (process.env.MOCK_API !== "false") {
-      await page.route("**/me", async (route) => {
-        await route.fulfill({ status: 401 });
-      });
-    }
+    await mockMe(page, null);
 
     await page.goto("/");
 
@@ -25,77 +36,97 @@ test.describe("Portal E2E - Unauthenticated Flow", () => {
 });
 
 test.describe("Portal E2E - Authenticated Flow", () => {
-  test.beforeEach(async ({ page }) => {
-    // 1. Setup network mock routes if in mock mode
-    if (process.env.MOCK_API !== "false") {
-      await setupMockRoutes(page);
-    }
-  });
-
   test("should load dashboard, list projects, select project, create a project, and delete it", async ({ page }) => {
-    // 2. Perform conditional authentication
-    await authenticateSession(page);
+    const user = PREDEFINED_USERS.consultant;
 
-    // 3. Verify Header and Layout load authenticated state
-    await expect(page.locator(".user-name")).toContainText("e2e_consultant");
-    await expect(page.locator(".org-indicator")).toContainText("Acme Corporation");
+    // 1. Setup dynamic, test-scoped project and task state in-memory
+    const testProjects = [
+      {
+        id: "11111111-1111-1111-1111-111111111111",
+        tenantId: "tenant-1",
+        name: "Acme Corp Cloud Migration",
+        status: "Active",
+      },
+      {
+        id: "22222222-2222-2222-2222-222222222222",
+        tenantId: "tenant-1",
+        name: "Fintech Core Ledger API",
+        status: "Active",
+      },
+    ];
 
-    // 4. Verify Project list in Sidebar panel
-    const sidebar = page.locator(".projects-panel");
-    await expect(sidebar).toBeVisible();
+    const testTasks = [
+      {
+        id: "t1",
+        projectId: "11111111-1111-1111-1111-111111111111",
+        title: "Set up AWS Landing Zone & IAM Roles",
+        type: "Research",
+        status: "Completed",
+        hours: 12,
+        order: 1,
+      },
+      {
+        id: "t2",
+        projectId: "11111111-1111-1111-1111-111111111111",
+        title: "Dockerize existing Node.js Microservices",
+        type: "Development",
+        status: "InProgress",
+        hours: 18,
+        order: 2,
+      },
+    ];
 
-    const projectCards = sidebar.locator(".project-card");
-    await expect(projectCards).toHaveCount(2);
-    await expect(projectCards.nth(0)).toContainText("Acme Corp Cloud Migration");
-    await expect(projectCards.nth(1)).toContainText("Fintech Core Ledger API");
+    // 2. Register granular, test-specific mocks
+    await mockGetProjects(page, testProjects);
+    await mockGetTasks(page, "11111111-1111-1111-1111-111111111111", testTasks);
+    await mockDeleteProject(page);
 
-    // 5. Select first project and verify tasks loading in columns
-    await projectCards.nth(0).click();
-
-    // Verify task panel header
-    await expect(page.locator(".active-project-info h2")).toContainText("Acme Corp Cloud Migration");
-
-    // Verify task card loaded under "Completed" column
-    const completedColumn = page.locator(".tasks-column", { hasText: "Completed" });
-    await expect(completedColumn.locator(".task-card")).toContainText("Set up AWS Landing Zone");
-
-    // Verify task card loaded under "In Progress" column
-    const inProgressColumn = page.locator(".tasks-column", { hasText: "In Progress" });
-    await expect(inProgressColumn.locator(".task-card")).toContainText("Dockerize existing Node.js");
-
-    // 6. Test Creation of a new project (Write scope available)
-    const addProjectBtn = page.locator(".btn-add-project");
-    await expect(addProjectBtn).toBeVisible();
-    await addProjectBtn.click();
-
-    const modal = page.locator(".modal-overlay");
-    await expect(modal).toBeVisible();
-    
-    // Fill in create form details
-    await modal.locator("input[type='text']").fill("New E2E Project");
-    await modal.locator("select").selectOption({ value: "tenant-1" });
-    await modal.locator("button[type='submit']").click();
-
-    // Wait for modal unmount
-    await expect(modal).not.toBeVisible();
-
-    // Verify new project has been appended and selected
-    await expect(projectCards).toHaveCount(3);
-    await expect(page.locator(".active-project-info h2")).toContainText("New E2E Project");
-
-    // 7. Test Deletion of the new project
-    // Setup dialog handler to automatically accept standard confirm alert
-    page.on("dialog", async (dialog) => {
-      expect(dialog.message()).toContain("Are you sure you want to delete");
-      await dialog.accept();
+    // Support reactive mocked collection state changes for the CREATE project endpoint
+    await mockCreateProject(page, (body) => {
+      const newProj = {
+        id: "33333333-3333-3333-3333-333333333333",
+        tenantId: body.tenantId || "tenant-1",
+        name: body.name || "Newly Mocked Project",
+        status: "Proposed",
+      };
+      testProjects.push(newProj);
+      return newProj;
     });
 
-    const activeProjectCard = page.locator(".project-card.active");
-    const deleteBtn = activeProjectCard.locator(".btn-delete-project-new");
-    await expect(deleteBtn).toBeVisible();
-    await deleteBtn.click();
+    // 3. Perform session authentication
+    await authenticateSession(page, user);
 
-    // Verify project has been cleanly removed from list
-    await expect(projectCards).toHaveCount(2);
+    // 4. Verify authenticated session header and layout
+    await verifyUserSession(page, user.username, "Acme Corporation");
+
+    // 5. Verify the project list matches expected
+    await verifyProjectsList(page, ["Acme Corp Cloud Migration", "Fintech Core Ledger API"]);
+
+    // 6. Select first project and verify its tasks load in corresponding columns
+    await selectProject(page, 0);
+    await verifyActiveProjectName(page, "Acme Corp Cloud Migration");
+    await verifyTasksInColumn(page, "Completed", ["Set up AWS Landing Zone & IAM Roles"]);
+    await verifyTasksInColumn(page, "In Progress", ["Dockerize existing Node.js Microservices"]);
+
+    // 7. Create a new project dynamically via UI actions
+    await createProject(page, "New E2E Project", "tenant-1");
+
+    // 8. Assert new project is added and selected
+    await verifyProjectsList(page, [
+      "Acme Corp Cloud Migration",
+      "Fintech Core Ledger API",
+      "New E2E Project",
+    ]);
+    await verifyActiveProjectName(page, "New E2E Project");
+
+    // 9. Delete the active project
+    if (process.env.MOCK_API !== "false") {
+      // In mock mode, splice the in-memory array to simulate database deletion
+      testProjects.pop();
+    }
+    await deleteActiveProject(page);
+
+    // 10. Verify project has been cleanly removed from the list
+    await verifyProjectsList(page, ["Acme Corp Cloud Migration", "Fintech Core Ledger API"]);
   });
 });
