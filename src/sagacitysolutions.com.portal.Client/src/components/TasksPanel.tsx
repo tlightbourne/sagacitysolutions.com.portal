@@ -29,7 +29,6 @@ export function TasksPanel({
   setSearchQuery,
   taskTypeFilter,
   setTaskTypeFilter,
-  onSelectTask,
   statusLabelHelper,
   onAddTask,
   onEditTask,
@@ -37,6 +36,7 @@ export function TasksPanel({
   scope,
 }: TasksPanelProps) {
   const [expandedTaskIds, setExpandedTaskIds] = useState<Record<string, boolean>>({});
+  const [activeMobileTab, setActiveMobileTab] = useState<"deliverables" | WorkTaskStatus>("deliverables");
   
   // Modals state
   const [isCreateOpen, setIsCreateOpen] = useState(false);
@@ -187,7 +187,7 @@ export function TasksPanel({
         </div>
 
         {hasChildren && isExpanded && (
-          <div className="tree-children-container" style={{ display: "flex", flexDirection: "column", gap: "0.25rem", marginTop: "0.25rem" }}>
+          <div className="tree-children-container">
             {task.children!.map((child) => renderDeliverableNode(child, depth + 1, currentTopLevelId))}
           </div>
         )}
@@ -196,7 +196,7 @@ export function TasksPanel({
   };
 
   return (
-    <section className="tasks-panel" style={{ overflow: "visible" }}>
+    <section className="tasks-panel">
       <div className="tasks-header">
         <div className="active-project-info">
           <h2>{projectName}</h2>
@@ -230,6 +230,32 @@ export function TasksPanel({
         </div>
       </div>
 
+      {/* Mobile Tab Switcher */}
+      <div className="mobile-tabs-container">
+        <button
+          type="button"
+          className={`mobile-tab-btn ${activeMobileTab === "deliverables" ? "active" : ""}`}
+          onClick={() => setActiveMobileTab("deliverables")}
+        >
+          <span>Deliverables</span>
+          <span className="tab-count">{tasks.length}</span>
+        </button>
+        {(["NotStarted", "InProgress", "OnHold", "Completed"] as WorkTaskStatus[]).map((status) => {
+          const count = getLeafTasksByStatus(status).length;
+          return (
+            <button
+              key={status}
+              type="button"
+              className={`mobile-tab-btn ${activeMobileTab === status ? "active" : ""}`}
+              onClick={() => setActiveMobileTab(status)}
+            >
+              <span>{statusLabelHelper(status)}</span>
+              <span className="tab-count">{count}</span>
+            </button>
+          );
+        })}
+      </div>
+
       {loading ? (
         <div className="empty-state">
           <h3>Loading deliverables...</h3>
@@ -239,20 +265,20 @@ export function TasksPanel({
           <h3>No tasks found</h3>
           <p>This project currently has no registered consulting tasks.</p>
           {canWrite && (
-            <button type="button" onClick={handleOpenAddTopLevel} className="btn-add-project" style={{ maxWidth: "200px" }}>
+            <button type="button" onClick={handleOpenAddTopLevel} className="btn-add-project">
               <PlusIcon /> Add First Deliverable
             </button>
           )}
         </div>
       ) : (
-        <div className="tasks-columns" style={{ display: "grid", gridTemplateColumns: "280px repeat(4, 1fr)", gap: "1rem" }}>
+        <div className="tasks-columns">
           {/* Column 1: Deliverables Tree */}
-          <div className="tasks-column deliverables-column" style={{ background: "rgba(17, 12, 34, 0.45)", border: "1px solid rgba(170, 59, 255, 0.15)" }}>
+          <div className={`tasks-column deliverables-column ${activeMobileTab === "deliverables" ? "mobile-active" : ""}`}>
             <div className="column-header">
               <span className="column-title">Deliverables</span>
               <span className="task-count">{tasks.length}</span>
             </div>
-            <div className="tree-list-container" style={{ display: "flex", flexDirection: "column", gap: "0.5rem", overflowY: "auto", maxHeight: "65vh" }}>
+            <div className="tree-list-container">
               {tasks.map((task) => renderDeliverableNode(task, 0))}
             </div>
             {canWrite && (
@@ -260,7 +286,6 @@ export function TasksPanel({
                 type="button"
                 onClick={handleOpenAddTopLevel}
                 className="btn-add-project"
-                style={{ marginTop: "auto", background: "linear-gradient(135deg, var(--accent) 0%, var(--accent-light) 100%)" }}
               >
                 <PlusIcon /> Add Deliverable
               </button>
@@ -271,13 +296,13 @@ export function TasksPanel({
           {(["NotStarted", "InProgress", "OnHold", "Completed"] as WorkTaskStatus[]).map((status) => {
             const columnTasks = getLeafTasksByStatus(status);
             return (
-              <div className="tasks-column" key={status}>
+              <div className={`tasks-column ${activeMobileTab === status ? "mobile-active" : ""}`} key={status}>
                 <div className="column-header">
                   <span className="column-title">{statusLabelHelper(status)}</span>
                   <span className="task-count">{columnTasks.length}</span>
                 </div>
 
-                <div className="tasks-list-container" style={{ overflowY: "auto", maxHeight: "65vh" }}>
+                <div className="tasks-list-container">
                   {columnTasks.map((task) => (
                     <TaskCard
                       key={task.id}

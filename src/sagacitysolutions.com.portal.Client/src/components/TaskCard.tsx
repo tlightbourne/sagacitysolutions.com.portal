@@ -23,7 +23,7 @@ export function TaskCard({ task, onClick, topLevelId, parentPath }: TaskCardProp
       } : {}}
     >
       {parentPath && (
-        <div className="task-parent-path" style={theme ? { color: theme.textLight, fontSize: "0.75rem", fontWeight: 600, marginBottom: "4px", opacity: 1 } : {}}>
+        <div className="task-parent-path" style={theme ? { color: theme.textLight } : {}}>
           {parentPath}
         </div>
       )}
@@ -31,7 +31,7 @@ export function TaskCard({ task, onClick, topLevelId, parentPath }: TaskCardProp
       <span className={`task-type-badge type-${task.type.toLowerCase()}`}>
         {task.type}
       </span>
-      <h3 className="task-title" style={{ marginTop: "6px" }}>{task.title}</h3>
+      <h3 className="task-title">{task.title}</h3>
 
       <div className="task-card-footer">
         <div className="task-hours">

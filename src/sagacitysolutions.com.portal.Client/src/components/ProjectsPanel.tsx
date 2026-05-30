@@ -119,7 +119,7 @@ export function ProjectsPanel({
               }}
               style={{ opacity: isGranted ? 1 : 0.6 }}
             >
-              <span className="project-name" style={{ paddingRight: canDelete || canEdit ? "52px" : "0px" }}>
+              <span className={`project-name ${canDelete || canEdit ? "has-actions" : ""}`}>
                 {project.name}
               </span>
               <div className="project-meta">

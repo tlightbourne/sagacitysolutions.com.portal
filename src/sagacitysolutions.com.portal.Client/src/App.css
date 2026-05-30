@@ -138,6 +138,8 @@
 @media (max-width: 1024px) {
   .portal-workspace {
     grid-template-columns: 1fr;
+    width: 100%;
+    min-width: 0;
   }
 }
 
@@ -153,6 +155,8 @@
   padding: 1.5rem;
   box-shadow: var(--card-shadow);
   gap: 1.25rem;
+  width: 100%;
+  min-width: 0;
 }
 
 .panel-title {
@@ -193,6 +197,8 @@
   display: flex;
   flex-direction: column;
   gap: 0.35rem;
+  width: 100%;
+  min-width: 0;
 }
 
 .project-card:hover {
@@ -240,6 +246,9 @@
   box-shadow: var(--card-shadow);
   gap: 1.25rem;
   min-height: 60vh;
+  overflow: visible;
+  width: 100%;
+  min-width: 0;
 }
 
 .tasks-header {
@@ -269,8 +278,8 @@
 
 .tasks-columns {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
-  gap: 1.25rem;
+  grid-template-columns: 280px repeat(4, 1fr);
+  gap: 1rem;
   align-items: start;
 }
 
@@ -283,6 +292,8 @@
   flex-direction: column;
   gap: 0.85rem;
   min-height: 450px;
+  width: 100%;
+  min-width: 0;
 }
 
 .column-header {
@@ -343,6 +354,7 @@
   font-weight: 600;
   color: var(--text-primary);
   line-height: 1.4;
+  margin-top: 6px;
 }
 
 .task-card-footer {
@@ -1197,6 +1209,241 @@
   color: var(--text-muted);
   margin: 0;
 }
+
+/* ── Consolidated Component Classes (Extracted Inline Styles) ── */
+.tasks-column.deliverables-column {
+  background: rgba(17, 12, 34, 0.45);
+  border: 1px solid rgba(170, 59, 255, 0.15);
+}
+
+.tree-list-container {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  overflow-y: auto;
+  max-height: 65vh;
+}
+
+.deliverables-column .btn-add-project {
+  margin-top: auto;
+  background: linear-gradient(135deg, var(--accent) 0%, var(--accent-light) 100%);
+}
+
+.tasks-list-container {
+  overflow-y: auto;
+  max-height: 65vh;
+}
+
+.tree-children-container {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+  margin-top: 0.25rem;
+}
+
+.task-parent-path {
+  font-size: 0.75rem;
+  font-weight: 600;
+  margin-bottom: 4px;
+  opacity: 1;
+}
+
+.project-name.has-actions {
+  padding-right: 52px;
+}
+
+textarea.modal-input-textarea {
+  resize: vertical;
+}
+
+.empty-state .btn-add-project {
+  max-width: 200px;
+}
+
+/* ── Mobile/Tablet Tabs and Responsiveness ── */
+.mobile-tabs-container {
+  display: none;
+}
+
+@media (max-width: 1024px) {
+  .mobile-tabs-container {
+    display: flex;
+    gap: 0.5rem;
+    overflow-x: auto;
+    padding-bottom: 0.75rem;
+    margin-bottom: 0.5rem;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+    -webkit-overflow-scrolling: touch;
+  }
+  
+  .mobile-tabs-container::-webkit-scrollbar {
+    height: 4px;
+  }
+  
+  .mobile-tabs-container::-webkit-scrollbar-thumb {
+    background: rgba(170, 59, 255, 0.2);
+    border-radius: 4px;
+  }
+
+  .mobile-tab-btn {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    background: rgba(255, 255, 255, 0.02);
+    border: 1px solid rgba(255, 255, 255, 0.05);
+    padding: 0.55rem 0.85rem;
+    border-radius: 10px;
+    color: var(--text-secondary);
+    font-size: 0.8rem;
+    font-weight: 600;
+    cursor: pointer;
+    white-space: nowrap;
+    transition: var(--transition-fast);
+  }
+
+  .mobile-tab-btn:hover {
+    background: rgba(255, 255, 255, 0.05);
+    color: white;
+  }
+
+  .mobile-tab-btn.active {
+    background: rgba(170, 59, 255, 0.12);
+    border-color: var(--accent);
+    color: var(--accent-light);
+    box-shadow: 0 0 12px rgba(170, 59, 255, 0.15);
+  }
+
+  .mobile-tab-btn .tab-count {
+    font-size: 0.7rem;
+    background: rgba(255, 255, 255, 0.05);
+    color: var(--text-secondary);
+    padding: 0.1rem 0.35rem;
+    border-radius: 20px;
+    font-weight: 600;
+  }
+
+  .mobile-tab-btn.active .tab-count {
+    background: rgba(170, 59, 255, 0.2);
+    color: white;
+  }
+
+  /* Only show the active column on mobile/tablet */
+  .tasks-columns {
+    grid-template-columns: 1fr;
+    gap: 0;
+  }
+
+  .tasks-column {
+    display: none !important;
+  }
+  
+  .tasks-column.mobile-active {
+    display: flex !important;
+    width: 100%;
+  }
+}
+
+/* ── Deep Mobile Responsiveness Overrides ── */
+
+/* Stacking header components for narrow viewports */
+@media (max-width: 650px) {
+  .portal-header {
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+    gap: 1.25rem;
+    padding: 1.25rem 1rem;
+  }
+
+  .brand-section {
+    flex-direction: column;
+    align-items: center;
+    gap: 0.5rem;
+  }
+
+  .brand-info h1 {
+    font-size: 1.25rem;
+  }
+
+  .user-profile-section {
+    flex-direction: column;
+    align-items: stretch;
+    width: 100%;
+    gap: 0.75rem;
+  }
+
+  .org-indicator {
+    justify-content: center;
+    width: 100%;
+  }
+
+  .user-badge {
+    justify-content: center;
+    width: 100%;
+    padding: 0.5rem 1rem;
+  }
+
+  .btn-signout {
+    width: 100%;
+    text-align: center;
+  }
+}
+
+/* Compact page padding for mobile viewports */
+@media (max-width: 600px) {
+  .portal-container {
+    padding: 1rem 0.75rem;
+    gap: 1rem;
+  }
+
+  .projects-panel,
+  .tasks-panel {
+    padding: 1rem;
+  }
+}
+
+/* Search input and type selector stacking & status tabs wrapping */
+@media (max-width: 480px) {
+  .tasks-header {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 1rem;
+  }
+
+  .tasks-filter-container {
+    flex-direction: column;
+    align-items: stretch;
+    width: 100%;
+    gap: 0.5rem;
+  }
+
+  .tasks-search-input {
+    width: 100% !important;
+  }
+
+  .tasks-type-select {
+    width: 100% !important;
+  }
+
+  /* Wrap tab buttons in a beautiful full-width balanced grid */
+  .mobile-tabs-container {
+    flex-wrap: wrap;
+    gap: 0.35rem;
+    padding-bottom: 0.5rem;
+  }
+
+  .mobile-tab-btn {
+    flex: 1 1 calc(50% - 0.35rem); /* Renders as a structured 2x2 grid */
+    justify-content: center;
+    padding: 0.45rem 0.65rem;
+    font-size: 0.75rem;
+  }
+
+  .mobile-tab-btn:first-child {
+    flex: 1 1 100%; /* Force deliverables to stretch full width above status columns */
+  }
+}
+
 
 
 

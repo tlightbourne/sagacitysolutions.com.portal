@@ -108,8 +108,7 @@ export function CreateTaskModal({
               onChange={(e) => setDescription(e.target.value)}
               placeholder="Provide a detailed description of this consulting deliverable..."
               rows={4}
-              className="modal-input"
-              style={{ resize: "vertical" }}
+              className="modal-input modal-input-textarea"
             />
           </div>
 
@@ -280,8 +279,7 @@ export function EditTaskModal({
               disabled={!canWrite}
               onChange={(e) => setDescription(e.target.value)}
               rows={4}
-              className="modal-input"
-              style={{ resize: "vertical" }}
+              className="modal-input modal-input-textarea"
             />
           </div>
 
