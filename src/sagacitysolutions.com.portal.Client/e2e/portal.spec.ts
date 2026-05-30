@@ -6,6 +6,7 @@ import {
   mockCreateProject,
   mockGetTasks,
   mockDeleteProject,
+  mockUpdateProject,
 } from "./mockRoutes";
 import {
   createProject,
@@ -15,6 +16,7 @@ import {
   verifyActiveProjectName,
   verifyTasksInColumn,
   verifyUserSession,
+  editProject,
 } from "./helpers/project";
 
 test.describe("Portal E2E - Unauthenticated Flow", () => {
@@ -128,5 +130,57 @@ test.describe("Portal E2E - Authenticated Flow", () => {
 
     // 10. Verify project has been cleanly removed from the list
     await verifyProjectsList(page, ["Acme Corp Cloud Migration", "Fintech Core Ledger API"]);
+  });
+
+  test("should successfully edit an existing project", async ({ page }) => {
+    const user = PREDEFINED_USERS.consultant;
+
+    const testProjects = [
+      {
+        id: "11111111-1111-1111-1111-111111111111",
+        tenantId: "tenant-1",
+        name: "Acme Corp Cloud Migration",
+        status: "Active",
+      },
+      {
+        id: "22222222-2222-2222-2222-222222222222",
+        tenantId: "tenant-1",
+        name: "Fintech Core Ledger API",
+        status: "Active",
+      },
+    ];
+
+    await mockGetProjects(page, testProjects);
+    await mockGetTasks(page, "11111111-1111-1111-1111-111111111111", []);
+    
+    // Support reactive mocked collection state changes for the PUT project endpoint
+    await mockUpdateProject(page, (body) => {
+      const proj = testProjects.find((p) => p.id === body.projectId);
+      if (proj) {
+        proj.name = body.name || proj.name;
+        proj.status = body.status || proj.status;
+      }
+      return {
+        id: body.projectId || "11111111-1111-1111-1111-111111111111",
+        tenantId: "tenant-1",
+        name: body.name || "Updated Project Name",
+        status: body.status || "Active",
+      };
+    });
+
+    await authenticateSession(page, user);
+
+    // Verify initial state
+    await verifyProjectsList(page, ["Acme Corp Cloud Migration", "Fintech Core Ledger API"]);
+
+    // Select the project to make it active
+    await selectProject(page, "Acme Corp Cloud Migration");
+
+    // Edit project
+    await editProject(page, "Acme Corp Cloud Migration", "Acme Corp Cloud Migration v2", "OnHold");
+
+    // Verify name has updated in the list and active headers
+    await verifyProjectsList(page, ["Acme Corp Cloud Migration v2", "Fintech Core Ledger API"]);
+    await verifyActiveProjectName(page, "Acme Corp Cloud Migration v2");
   });
 });

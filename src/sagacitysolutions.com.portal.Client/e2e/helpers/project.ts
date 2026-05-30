@@ -107,3 +107,41 @@ export async function verifyUserSession(
   await expect(orgIndicatorLoc).toBeVisible();
   await expect(orgIndicatorLoc).toContainText(organization);
 }
+
+export async function editProject(
+  page: Page,
+  projectName: string,
+  newProjectName: string,
+  newStatus?: string
+) {
+  // Find project card by name and click edit button inside it
+  const projectCard = page.locator(".project-card", { hasText: projectName });
+  await expect(projectCard).toBeVisible();
+
+  const editBtn = projectCard.locator(".btn-edit-project");
+  await expect(editBtn).toBeVisible();
+  await editBtn.click();
+
+  const modal = page.locator(".modal-overlay");
+  await expect(modal).toBeVisible();
+
+  // Fill in the new name
+  const nameInput = modal.locator("input[type='text']");
+  await expect(nameInput).toBeVisible();
+  await nameInput.fill(newProjectName);
+
+  // If status is provided, select it
+  if (newStatus) {
+    const statusSelect = modal.locator("select");
+    await expect(statusSelect).toBeVisible();
+    await statusSelect.selectOption({ value: newStatus });
+  }
+
+  // Click submit
+  const submitBtn = modal.locator("button[type='submit']");
+  await expect(submitBtn).toBeVisible();
+  await submitBtn.click();
+
+  // Modal should close
+  await expect(modal).not.toBeVisible();
+}

@@ -67,7 +67,9 @@ export function ProjectsPanel({
   const canAddProject =
     scopes.includes("write:projects") && Object.keys(organizations).length > 0;
 
-  const visibleProjects = projects.filter((p) => showArchived || p.status !== "Archived");
+  const visibleProjects = projects
+    .filter((p) => showArchived || p.status !== "Archived")
+    .sort((a, b) => a.name.localeCompare(b.name));
   const archivedCount = projects.filter((p) => p.status === "Archived").length;
 
   return (
