@@ -17,7 +17,7 @@ export const PREDEFINED_USERS: Record<string, TestUser> = {
       "tenant-1": "Acme Corporation",
     },
     portal_project_ids: ["*"],
-    scope: "read:projects write:projects",
+    scope: "read:projects write:projects read:tasks write:tasks",
   },
   viewer: {
     username: "e2e_viewer",
@@ -26,7 +26,7 @@ export const PREDEFINED_USERS: Record<string, TestUser> = {
       "tenant-1": "Acme Corporation",
     },
     portal_project_ids: ["*"],
-    scope: "read:projects",
+    scope: "read:projects read:tasks",
   },
   unauthorized: {
     username: "e2e_unauthorized",

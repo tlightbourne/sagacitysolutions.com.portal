@@ -113,7 +113,7 @@ async function run() {
     // 2. Generate and run SQL bootstrap script in the Postgres container (idempotent & platform-independent)
     console.log("📝 Generating SQL bootstrap script...");
     const sqlContent = [
-      `INSERT INTO applications (tenant_id, id, name, type, secret, oidc_client_metadata, custom_data) VALUES ('default', '${m2mClientId}', 'E2E Test Client', 'MachineToMachine', '${m2mClientSecret}', '{}', '{}') ON CONFLICT DO NOTHING;`,
+      `INSERT INTO applications (tenant_id, id, name, type, secret, oidc_client_metadata, custom_data) VALUES ('default', '${m2mClientId}', 'E2E Test Client', 'MachineToMachine', '${m2mClientSecret}', '{"redirectUris": [], "postLogoutRedirectUris": []}', '{}') ON CONFLICT DO NOTHING;`,
       `INSERT INTO applications (tenant_id, id, name, type, secret, oidc_client_metadata, custom_data) VALUES ('default', 'moxwjx3you2zdb4dglttg', 'BFF Client', 'Traditional', '7sAbhzKUoi42MtxZgEgIdU3LbQwTES1w', '{"redirectUris": ["http://localhost:5000/auth/callback"], "postLogoutRedirectUris": ["http://localhost:5173"]}', '{}') ON CONFLICT DO NOTHING;`,
       `INSERT INTO application_secrets (tenant_id, application_id, name, value) VALUES ('default', '${m2mClientId}', 'Default secret', '${m2mClientSecret}') ON CONFLICT DO NOTHING;`,
       `INSERT INTO application_secrets (tenant_id, application_id, name, value) VALUES ('default', 'moxwjx3you2zdb4dglttg', 'Default secret', '7sAbhzKUoi42MtxZgEgIdU3LbQwTES1w') ON CONFLICT DO NOTHING;`,
@@ -291,6 +291,8 @@ async function run() {
 
     await addScope("read:projects", "Read project list and details");
     await addScope("write:projects", "Create, edit, or delete projects");
+    await addScope("read:tasks", "Read task list and details");
+    await addScope("write:tasks", "Create, edit, or delete tasks");
 
     // Fetch the portal resource detailed scopes to get their IDs
     const resourceDetailResponse = await fetch(`${LOGTO_ENDPOINT}/api/resources/${portalResource.id}/scopes`, { headers });
@@ -299,9 +301,11 @@ async function run() {
 
     const readScope = scopes.find((s) => s.name === "read:projects");
     const writeScope = scopes.find((s) => s.name === "write:projects");
+    const readTasksScope = scopes.find((s) => s.name === "read:tasks");
+    const writeTasksScope = scopes.find((s) => s.name === "write:tasks");
 
-    if (!readScope || !writeScope) {
-      throw new Error("API Resource scopes read:projects or write:projects could not be retrieved.");
+    if (!readScope || !writeScope || !readTasksScope || !writeTasksScope) {
+      throw new Error("API Resource scopes read:projects, write:projects, read:tasks, or write:tasks could not be retrieved.");
     }
 
     // 9. Ensure Organization exists (tenant-1: Acme Corporation)
@@ -336,40 +340,66 @@ async function run() {
     const roles = await rolesResponse.json();
 
     let adminRole = roles.find((r) => r.name === "Portal Admin");
-    if (!adminRole) {
-      console.log("➕ Portal Admin Role not found. Creating...");
-      const createRoleResponse = await fetch(`${LOGTO_ENDPOINT}/api/roles`, {
-        method: "POST",
+    if (adminRole) {
+      console.log("🗑️ Portal Admin Role already exists. Deleting to reset state...");
+      const deleteResponse = await fetch(`${LOGTO_ENDPOINT}/api/roles/${adminRole.id}`, {
+        method: "DELETE",
         headers,
-        body: JSON.stringify({
-          name: "Portal Admin",
-          description: "Full access to portal projects",
-          scopeIds: [readScope.id, writeScope.id],
-        }),
       });
-      adminRole = await createRoleResponse.json();
-      console.log("✅ Portal Admin Role created!");
-    } else {
-      console.log("✅ Portal Admin Role already exists.");
+      if (!deleteResponse.ok) {
+        console.warn(`⚠️ Warning: Failed to delete Portal Admin Role: ${deleteResponse.statusText}`);
+      } else {
+        console.log(`✅ Deleted Portal Admin Role successfully.`);
+      }
     }
 
-    let viewerRole = roles.find((r) => r.name === "Portal Viewer");
-    if (!viewerRole) {
-      console.log("➕ Portal Viewer Role not found. Creating...");
-      const createRoleResponse = await fetch(`${LOGTO_ENDPOINT}/api/roles`, {
-        method: "POST",
-        headers,
-        body: JSON.stringify({
-          name: "Portal Viewer",
-          description: "Read-only access to portal projects",
-          scopeIds: [readScope.id],
-        }),
-      });
-      viewerRole = await createRoleResponse.json();
-      console.log("✅ Portal Viewer Role created!");
-    } else {
-      console.log("✅ Portal Viewer Role already exists.");
+    console.log("➕ Creating Portal Admin Role...");
+    const createAdminRoleResponse = await fetch(`${LOGTO_ENDPOINT}/api/roles`, {
+      method: "POST",
+      headers,
+      body: JSON.stringify({
+        name: "Portal Admin",
+        description: "Full access to portal projects",
+        scopeIds: [readScope.id, writeScope.id, readTasksScope.id, writeTasksScope.id],
+      }),
+    });
+    if (!createAdminRoleResponse.ok) {
+      const err = await createAdminRoleResponse.text();
+      throw new Error(`Failed to create Portal Admin Role: ${err}`);
     }
+    adminRole = await createAdminRoleResponse.json();
+    console.log("✅ Portal Admin Role created!");
+
+    let viewerRole = roles.find((r) => r.name === "Portal Viewer");
+    if (viewerRole) {
+      console.log("🗑️ Portal Viewer Role already exists. Deleting to reset state...");
+      const deleteResponse = await fetch(`${LOGTO_ENDPOINT}/api/roles/${viewerRole.id}`, {
+        method: "DELETE",
+        headers,
+      });
+      if (!deleteResponse.ok) {
+        console.warn(`⚠️ Warning: Failed to delete Portal Viewer Role: ${deleteResponse.statusText}`);
+      } else {
+        console.log(`✅ Deleted Portal Viewer Role successfully.`);
+      }
+    }
+
+    console.log("➕ Creating Portal Viewer Role...");
+    const createViewerRoleResponse = await fetch(`${LOGTO_ENDPOINT}/api/roles`, {
+      method: "POST",
+      headers,
+      body: JSON.stringify({
+        name: "Portal Viewer",
+        description: "Read-only access to portal projects",
+        scopeIds: [readScope.id, readTasksScope.id],
+      }),
+    });
+    if (!createViewerRoleResponse.ok) {
+      const err = await createViewerRoleResponse.text();
+      throw new Error(`Failed to create Portal Viewer Role: ${err}`);
+    }
+    viewerRole = await createViewerRoleResponse.json();
+    console.log("✅ Portal Viewer Role created!");
 
     // 11. Provision Predefined Test Users
     const testUsers = [
