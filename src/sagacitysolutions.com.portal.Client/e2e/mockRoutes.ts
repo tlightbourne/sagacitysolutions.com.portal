@@ -100,6 +100,82 @@ export async function mockGetTasks(page: Page, projectId: string, tasks: MockTas
 }
 
 /**
+ * Mocks the POST /api/projects/:projectId/tasks endpoint.
+ */
+export async function mockCreateTask(
+  page: Page,
+  projectId: string,
+  onCreate: MockTask | ((body: any) => MockTask)
+) {
+  if (process.env.MOCK_API === "false") return;
+  await page.route(`**/api/projects/${projectId}/tasks`, async (route, request) => {
+    if (request.method() === "POST") {
+      const body = JSON.parse(request.postData() || "{}");
+      const task = typeof onCreate === "function" ? onCreate(body) : onCreate;
+      await route.fulfill({
+        status: 200,
+        contentType: "application/json",
+        json: task,
+      });
+    } else {
+      await route.fallback();
+    }
+  });
+}
+
+/**
+ * Mocks the PUT /api/projects/:projectId/tasks/:taskId endpoint.
+ */
+export async function mockUpdateTask(
+  page: Page,
+  projectId: string,
+  onUpdate?: (body: any) => MockTask
+) {
+  if (process.env.MOCK_API === "false") return;
+  await page.route(`**/api/projects/${projectId}/tasks/*`, async (route, request) => {
+    if (request.method() === "PUT") {
+      const body = JSON.parse(request.postData() || "{}");
+      const task = onUpdate
+        ? onUpdate(body)
+        : {
+            id: body.id || "t1",
+            projectId: projectId,
+            parentId: body.parentId,
+            title: body.title || "Updated Task Title",
+            description: body.description,
+            type: body.type || "Development",
+            status: body.status || "NotStarted",
+            hours: body.hours || 0,
+            order: body.order || 1,
+          };
+      await route.fulfill({
+        status: 200,
+        contentType: "application/json",
+        json: task,
+      });
+    } else {
+      await route.fallback();
+    }
+  });
+}
+
+/**
+ * Mocks the DELETE /api/projects/:projectId/tasks/:taskId endpoint.
+ */
+export async function mockDeleteTask(page: Page, projectId: string) {
+  if (process.env.MOCK_API === "false") return;
+  await page.route(`**/api/projects/${projectId}/tasks/*`, async (route, request) => {
+    if (request.method() === "DELETE") {
+      await route.fulfill({
+        status: 204,
+      });
+    } else {
+      await route.fallback();
+    }
+  });
+}
+
+/**
  * Mocks the PUT /api/projects/:projectId endpoint.
  */
 export async function mockUpdateProject(

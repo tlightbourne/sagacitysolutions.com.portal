@@ -3,7 +3,7 @@ import { useAuth } from "./useAuth";
 import { login, logout, fetchApi } from "./api";
 import "./App.css";
 
-import type { Project, WorkTask, WorkTaskStatus, ProjectStatus } from "./types";
+import type { Project, WorkTask, WorkTaskStatus, WorkTaskType, ProjectStatus } from "./types";
 import { DEMO_PROJECTS, DEMO_TASKS } from "./demoData";
 import { WelcomeView } from "./components/WelcomeView";
 import { Header } from "./components/Header";
@@ -23,6 +23,8 @@ function App() {
   const [taskTypeFilter, setTaskTypeFilter] = useState<string>("All");
 
   const [loading, setLoading] = useState(false);
+  const [reloadTasksCount, setReloadTasksCount] = useState(0);
+  const triggerReloadTasks = () => setReloadTasksCount((prev) => prev + 1);
 
   // Fetch Projects once authenticated
   useEffect(() => {
@@ -76,7 +78,7 @@ function App() {
     }
 
     loadTasks();
-  }, [activeProject]);
+  }, [activeProject, reloadTasksCount]);
 
   if (auth.status === "loading" || auth.status === "unauthenticated") {
     return <WelcomeView status={auth.status} onLogin={login} />;
@@ -158,6 +160,34 @@ function App() {
     }
   };
 
+  const handleAddTask = async (title: string, type: WorkTaskType, description?: string, hours?: number, parentId?: string) => {
+    if (!activeProject) return;
+    await fetchApi(`projects/${activeProject.id}/tasks`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ projectId: activeProject.id, title, type, description, hours, parentId }),
+    });
+    triggerReloadTasks();
+  };
+
+  const handleEditTask = async (taskId: string, title: string, type: WorkTaskType, status: WorkTaskStatus, description?: string, hours?: number) => {
+    if (!activeProject) return;
+    await fetchApi(`projects/${activeProject.id}/tasks/${taskId}`, {
+      method: "PUT",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ projectId: activeProject.id, id: taskId, title, type, status, description, hours }),
+    });
+    triggerReloadTasks();
+  };
+
+  const handleDeleteTask = async (taskId: string) => {
+    if (!activeProject) return;
+    await fetchApi(`projects/${activeProject.id}/tasks/${taskId}`, {
+      method: "DELETE",
+    });
+    triggerReloadTasks();
+  };
+
   return (
     <div className="portal-container">
       {/* ── Modern Header ── */}
@@ -193,6 +223,10 @@ function App() {
           setTaskTypeFilter={setTaskTypeFilter}
           onSelectTask={setActiveTask}
           statusLabelHelper={getStatusLabel}
+          onAddTask={handleAddTask}
+          onEditTask={handleEditTask}
+          onDeleteTask={handleDeleteTask}
+          scope={user.scope}
         />
       </main>
 

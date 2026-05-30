@@ -1,3 +1,4 @@
+using System.Linq;
 using MediatR;
 using sagacitysolutions.com.portal.Application.Features.Task.Queries;
 using sagacitysolutions.com.portal.Application.Repository;
@@ -15,8 +16,9 @@ public class GetProjectTasksHandler : IRequestHandler<GetProjectTasksRequest, IE
         _repository = repository ?? throw new ArgumentNullException(nameof(repository));
     }
 
-    public Task<IEnumerable<WorkTask>> Handle(GetProjectTasksRequest request, CancellationToken cancellationToken)
+    public async System.Threading.Tasks.Task<IEnumerable<WorkTask>> Handle(GetProjectTasksRequest request, CancellationToken cancellationToken)
     {
-        return _repository.ToListAsync(new GetProjectTasksSpecification(), cancellationToken);
+        var allTasks = await _repository.ToListAsync(new GetProjectTasksSpecification(), cancellationToken);
+        return allTasks.Where(t => t.ParentId == null).ToList();
     }
 }

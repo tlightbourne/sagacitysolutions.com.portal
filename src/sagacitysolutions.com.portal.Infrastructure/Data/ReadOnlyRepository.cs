@@ -20,9 +20,18 @@ public class ReadOnlyRepository : IReadOnlyRepository
         var builtQuery = query;
         if (spec.Criterion != null)
             builtQuery = builtQuery.Where(spec.Criterion);
-        if (spec.Includes == null || !spec.Includes.Any())
-            return builtQuery;
-        return spec.Includes.Aggregate(builtQuery, (current, include) => current.Include(include));
+        
+        if (spec.Includes != null && spec.Includes.Any())
+        {
+            builtQuery = spec.Includes.Aggregate(builtQuery, (current, include) => current.Include(include));
+        }
+
+        if (spec.IncludeStrings != null && spec.IncludeStrings.Any())
+        {
+            builtQuery = spec.IncludeStrings.Aggregate(builtQuery, (current, include) => current.Include(include));
+        }
+
+        return builtQuery;
     }
 
     public Task<TEntity?> FirstOrDefaultAsync<TEntity>(ISpecification<TEntity> specification, CancellationToken cancellationToken = default) where TEntity : class

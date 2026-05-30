@@ -176,8 +176,12 @@ async function run() {
     // 6.5. Seed projects in the web API database (sagacitysolutions)
     console.log("⚙️ Seeding default projects in sagacitysolutions database...");
     const appSqlContent = [
+      `DELETE FROM "WorkTask";`,
+      `DELETE FROM "Project";`,
       `INSERT INTO "Project" ("Id", "TenantId", "Name", "Status") VALUES ('11111111-1111-1111-1111-111111111111', 'tenant-1', 'Acme Corp Cloud Migration', 'Active') ON CONFLICT ("Id") DO NOTHING;`,
-      `INSERT INTO "Project" ("Id", "TenantId", "Name", "Status") VALUES ('22222222-2222-2222-2222-222222222222', 'tenant-1', 'Fintech Core Ledger API', 'Active') ON CONFLICT ("Id") DO NOTHING;`
+      `INSERT INTO "Project" ("Id", "TenantId", "Name", "Status") VALUES ('22222222-2222-2222-2222-222222222222', 'tenant-1', 'Fintech Core Ledger API', 'Active') ON CONFLICT ("Id") DO NOTHING;`,
+      `INSERT INTO "WorkTask" ("Id", "ProjectId", "ParentId", "Title", "Description", "Type", "Status", "Hours", "Order", "CompletedAt") VALUES ('019e7a71-0000-0000-0000-000000000001', '11111111-1111-1111-1111-111111111111', NULL, 'Set up AWS Landing Zone & IAM Roles', 'Research estimate', 'Research', 'Completed', 12, 1, NULL) ON CONFLICT ("Id") DO NOTHING;`,
+      `INSERT INTO "WorkTask" ("Id", "ProjectId", "ParentId", "Title", "Description", "Type", "Status", "Hours", "Order", "CompletedAt") VALUES ('019e7a71-0000-0000-0000-000000000002', '11111111-1111-1111-1111-111111111111', NULL, 'Dockerize existing Node.js Microservices', 'Development work', 'Development', 'InProgress', 18, 2, NULL) ON CONFLICT ("Id") DO NOTHING;`
     ].join("\n");
 
     const tempAppSqlFile = path.join(__dirname, "bootstrap_app.sql");

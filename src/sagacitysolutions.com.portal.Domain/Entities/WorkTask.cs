@@ -14,6 +14,7 @@ public class WorkTask
     public DateTime? CompletedAt { get; private set; }
 
     public ICollection<Attachment> Attachments { get; } = new List<Attachment>();
+    [System.Text.Json.Serialization.JsonIgnore]
     public WorkTask? Parent { get; private set; }
     public ICollection<WorkTask> Children { get; } = new List<WorkTask>();
     public ICollection<TaskLink> TaskLinks { get; } = new List<TaskLink>();
@@ -35,5 +36,85 @@ public class WorkTask
         Hours = hours;
         Order = order;
         CompletedAt = completedAt;
+    }
+
+    public void Update(string title, WorkTaskType type, string? description, byte? hours, WorkTaskStatus status)
+    {
+        if (string.IsNullOrWhiteSpace(title))
+        {
+            throw new ArgumentException("Task title cannot be empty.", nameof(title));
+        }
+
+        Title = title;
+        Type = type;
+        Description = description;
+        Hours = hours;
+        Status = status;
+
+        if (status == WorkTaskStatus.Completed)
+        {
+            CompletedAt = DateTime.UtcNow;
+        }
+        else
+        {
+            CompletedAt = null;
+        }
+    }
+
+    public void SetStatus(WorkTaskStatus status)
+    {
+        Status = status;
+        if (status == WorkTaskStatus.Completed)
+        {
+            CompletedAt = DateTime.UtcNow;
+        }
+        else
+        {
+            CompletedAt = null;
+        }
+    }
+
+    public WorkTaskStatus CalculateStatusFromChildren()
+    {
+        if (Children == null || !Children.Any()) return WorkTaskStatus.NotStarted;
+
+        var statuses = Children.Select(c => c.Status).ToList();
+
+        // 1. If all tasks are completed, parent task is also completed
+        if (statuses.All(s => s == WorkTaskStatus.Completed))
+        {
+            return WorkTaskStatus.Completed;
+        }
+
+        // 2. If at least one child is in progress, the parent task is also in progress
+        if (statuses.Any(s => s == WorkTaskStatus.InProgress))
+        {
+            return WorkTaskStatus.InProgress;
+        }
+
+        // 3. If some tasks are completed and the rest are not started, parent is in progress
+        bool hasCompleted = statuses.Any(s => s == WorkTaskStatus.Completed);
+        bool hasNotStarted = statuses.Any(s => s == WorkTaskStatus.NotStarted);
+        bool onlyCompletedOrNotStarted = statuses.All(s => s == WorkTaskStatus.Completed || s == WorkTaskStatus.NotStarted);
+        if (hasCompleted && hasNotStarted && onlyCompletedOrNotStarted)
+        {
+            return WorkTaskStatus.InProgress;
+        }
+
+        // 4. If all tasks are either not started or on hold, the parent is also on hold
+        bool onlyNotStartedOrOnHold = statuses.All(s => s == WorkTaskStatus.NotStarted || s == WorkTaskStatus.OnHold);
+        bool hasAnyOnHold = statuses.Any(s => s == WorkTaskStatus.OnHold);
+        if (onlyNotStartedOrOnHold && hasAnyOnHold)
+        {
+            return WorkTaskStatus.OnHold;
+        }
+
+        // 5. If all children are not started, parent is not started
+        if (statuses.All(s => s == WorkTaskStatus.NotStarted))
+        {
+            return WorkTaskStatus.NotStarted;
+        }
+
+        return WorkTaskStatus.InProgress;
     }
 }

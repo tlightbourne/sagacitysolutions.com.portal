@@ -26,6 +26,7 @@ builder.Services.AddDbContext<PortalDbContext>(options =>
 });
 builder.Services.AddTransient<IReadOnlyRepository, ReadOnlyRepository>();
 builder.Services.AddTransient(typeof(IWriteRepository<>), typeof(WriteRepository<>));
+builder.Services.AddTransient<ITaskStatusPropagator, TaskStatusPropagator>();
 builder.Services.AddMediatR(cfg => cfg.RegisterServicesFromAssemblies(
     typeof(Program).Assembly,
     typeof(ReadOnlyRepository).Assembly,

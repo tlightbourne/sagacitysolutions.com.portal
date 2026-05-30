@@ -1,4 +1,3 @@
-using sagacitysolutions.com.portal.Application.Repository;
 using sagacitysolutions.com.portal.Application.Repository.Specifications;
 using sagacitysolutions.com.portal.Domain.Entities;
 
@@ -11,6 +10,7 @@ public class GetProjectTasksSpecification : Specification<WorkTask>
             task.Status != WorkTaskStatus.Archived &&
             task.ParentId == null)
     {
-        AddInclude(task => task.Children);
+        AddInclude("Children");
+        AddInclude("Children.Children");
     }
 }
