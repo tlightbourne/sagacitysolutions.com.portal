@@ -1,4 +1,5 @@
 using MediatR;
+using sagacitysolutions.com.portal.Application.Common.Messaging;
 using sagacitysolutions.com.portal.Application.Features.Task.Queries;
 using sagacitysolutions.com.portal.Application.Repository;
 using sagacitysolutions.com.portal.Domain.Entities;
@@ -15,7 +16,7 @@ public record ReorderTasksRequest(
     Guid TaskId,
     WorkTaskStatus NewStatus,
     byte NewOrder
-) : IRequest<IEnumerable<WorkTask>>;
+) : ICommand<IEnumerable<WorkTask>>;
 
 public class ReorderTasksHandler : IRequestHandler<ReorderTasksRequest, IEnumerable<WorkTask>>
 {

@@ -1,4 +1,5 @@
 using MediatR;
+using sagacitysolutions.com.portal.Application.Common.Messaging;
 using sagacitysolutions.com.portal.Application.Repository;
 using sagacitysolutions.com.portal.Domain.Entities;
 
@@ -13,7 +14,7 @@ public record AddTaskRequest(
     string? Description = null,
     byte? Hours = null,
     WorkTaskStatus Status = WorkTaskStatus.NotStarted
-) : IRequest<WorkTask>;
+) : ICommand<WorkTask>;
 
 public class AddTaskHandler : IRequestHandler<AddTaskRequest, WorkTask>
 {

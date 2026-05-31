@@ -1,11 +1,12 @@
 using MediatR;
+using sagacitysolutions.com.portal.Application.Common.Messaging;
 using sagacitysolutions.com.portal.Application.Features.Task.Queries;
 using sagacitysolutions.com.portal.Application.Repository;
 using sagacitysolutions.com.portal.Domain.Entities;
 
 namespace sagacitysolutions.com.portal.Application.Features.Task;
 
-public record DeleteTaskRequest(Guid ProjectId, Guid Id) : IRequest;
+public record DeleteTaskRequest(Guid ProjectId, Guid Id) : ICommand;
 
 public class DeleteTaskHandler : IRequestHandler<DeleteTaskRequest>
 {

@@ -7,6 +7,7 @@ using sagacitysolutions.com.portal.Application.Identity;
 using sagacitysolutions.com.portal.Application.Repository;
 using sagacitysolutions.com.portal.Infrastructure.Data;
 using sagacitysolutions.com.portal.WebApi;
+using sagacitysolutions.com.portal.WebApi.Behaviors;
 using sagacitysolutions.com.portal.WebApi.Routes;
 using System.Security.Claims;
 
@@ -22,15 +23,20 @@ builder.Services.Configure<Microsoft.AspNetCore.Http.Json.JsonOptions>(options =
 builder.Services.AddDbContext<PortalDbContext>(options =>
 {
     var connectionString = builder.Configuration.GetConnectionString("DefaultConnection");
-        options.UseNpgsql(connectionString);
+    options.UseNpgsql(connectionString);
 });
 builder.Services.AddTransient<IReadOnlyRepository, ReadOnlyRepository>();
 builder.Services.AddTransient(typeof(IWriteRepository<>), typeof(WriteRepository<>));
 builder.Services.AddTransient<ITaskStatusPropagator, TaskStatusPropagator>();
-builder.Services.AddMediatR(cfg => cfg.RegisterServicesFromAssemblies(
-    typeof(Program).Assembly,
-    typeof(ReadOnlyRepository).Assembly,
-    typeof(GetProjectTasksHandler).Assembly));
+builder.Services.AddMediatR(cfg =>
+{
+    cfg.RegisterServicesFromAssemblies(
+        typeof(Program).Assembly,
+        typeof(ReadOnlyRepository).Assembly,
+        typeof(GetProjectTasksHandler).Assembly
+        );
+    cfg.AddOpenBehavior(typeof(TransactionBehavior<,>));
+});
 
 // Configure JWT Bearer Authentication
 builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)

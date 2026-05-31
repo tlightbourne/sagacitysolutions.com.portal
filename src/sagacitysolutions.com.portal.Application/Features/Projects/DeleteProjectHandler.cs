@@ -1,10 +1,11 @@
 using MediatR;
+using sagacitysolutions.com.portal.Application.Common.Messaging;
 using sagacitysolutions.com.portal.Application.Repository;
 using sagacitysolutions.com.portal.Domain.Entities;
 
 namespace sagacitysolutions.com.portal.Application.Features.Projects;
 
-public record DeleteProjectRequest(Guid ProjectId) : IRequest;
+public record DeleteProjectRequest(Guid ProjectId) : ICommand;
 
 public class DeleteProjectHandler : IRequestHandler<DeleteProjectRequest>
 {

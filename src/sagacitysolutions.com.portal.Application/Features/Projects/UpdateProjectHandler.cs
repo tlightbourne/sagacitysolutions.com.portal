@@ -1,10 +1,11 @@
 using MediatR;
+using sagacitysolutions.com.portal.Application.Common.Messaging;
 using sagacitysolutions.com.portal.Application.Repository;
 using sagacitysolutions.com.portal.Domain.Entities;
 
 namespace sagacitysolutions.com.portal.Application.Features.Projects;
 
-public record UpdateProjectRequest(Guid ProjectId, string Name, ProjectStatus Status) : IRequest<Project>;
+public record UpdateProjectRequest(Guid ProjectId, string Name, ProjectStatus Status) : ICommand<Project>;
 
 public class UpdateProjectHandler : IRequestHandler<UpdateProjectRequest, Project>
 {

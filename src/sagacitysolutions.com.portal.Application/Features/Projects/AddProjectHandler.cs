@@ -1,10 +1,11 @@
 using MediatR;
+using sagacitysolutions.com.portal.Application.Common.Messaging;
 using sagacitysolutions.com.portal.Application.Repository;
 using sagacitysolutions.com.portal.Domain.Entities;
 
 namespace sagacitysolutions.com.portal.Application.Features.Projects;
 
-public record AddProjectRequest(string TenantId, string Name) : IRequest<Project>;
+public record AddProjectRequest(string TenantId, string Name) : ICommand<Project>;
 
 public class AddProjectHandler : IRequestHandler<AddProjectRequest, Project>
 {

@@ -1,4 +1,5 @@
 using MediatR;
+using sagacitysolutions.com.portal.Application.Common.Messaging;
 using sagacitysolutions.com.portal.Application.Features.Task.Queries;
 using sagacitysolutions.com.portal.Application.Repository;
 using sagacitysolutions.com.portal.Domain.Entities;
@@ -13,7 +14,7 @@ public record UpdateTaskRequest(
     WorkTaskStatus Status,
     string? Description = null,
     byte? Hours = null
-) : IRequest<WorkTask>;
+) : ICommand<WorkTask>;
 
 public class UpdateTaskHandler : IRequestHandler<UpdateTaskRequest, WorkTask>
 {
