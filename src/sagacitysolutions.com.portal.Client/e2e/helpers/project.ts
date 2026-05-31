@@ -1,7 +1,20 @@
 import { Page, expect } from "@playwright/test";
 
+async function ensureProjectsDropdownOpen(page: Page) {
+  const dropdown = page.locator(".projects-dropdown-menu");
+  if (!(await dropdown.isVisible())) {
+    const trigger = page.locator(".project-dropdown-trigger");
+    await expect(trigger).toBeVisible();
+    await trigger.click();
+    await expect(dropdown).toBeVisible();
+  }
+}
+
 export async function createProject(page: Page, name: string, tenantIdOrIndex: string | number = 0) {
-  const addProjectBtn = page.locator(".projects-panel .btn-add-project");
+  await ensureProjectsDropdownOpen(page);
+
+  const dropdown = page.locator(".projects-dropdown-menu");
+  const addProjectBtn = dropdown.locator(".btn-add-project");
   await expect(addProjectBtn).toBeVisible();
   await addProjectBtn.click();
 
@@ -25,24 +38,27 @@ export async function deleteActiveProject(page: Page) {
     await dialog.accept();
   });
   
-  const activeProjectCard = page.locator(".project-card.active");
+  await ensureProjectsDropdownOpen(page);
+  
+  const dropdown = page.locator(".projects-dropdown-menu");
+  const activeProjectCard = dropdown.locator(".project-card.active");
   const deleteBtn = activeProjectCard.locator(".btn-delete-project-new");
   await expect(deleteBtn).toBeVisible();
   await deleteBtn.click();
 }
 
 /**
- * Selects a project in the sidebar by index (0-based) or by name.
+ * Selects a project by index (0-based) or by name.
  */
 export async function selectProject(page: Page, selector: number | string) {
-  const sidebar = page.locator(".projects-panel");
-  await expect(sidebar).toBeVisible();
+  await ensureProjectsDropdownOpen(page);
 
+  const dropdown = page.locator(".projects-dropdown-menu");
   let targetCard;
   if (typeof selector === "number") {
-    targetCard = sidebar.locator(".project-card").nth(selector);
+    targetCard = dropdown.locator(".project-card").nth(selector);
   } else {
-    targetCard = sidebar.locator(".project-card", { hasText: selector });
+    targetCard = dropdown.locator(".project-card", { hasText: selector });
   }
 
   await expect(targetCard).toBeVisible();
@@ -50,25 +66,30 @@ export async function selectProject(page: Page, selector: number | string) {
 }
 
 /**
- * Asserts the list of projects displayed in the sidebar matches the expected names exactly.
+ * Asserts the list of projects matches the expected names exactly.
  */
 export async function verifyProjectsList(page: Page, expectedNames: string[]) {
-  const sidebar = page.locator(".projects-panel");
-  await expect(sidebar).toBeVisible();
+  await ensureProjectsDropdownOpen(page);
 
-  const projectCards = sidebar.locator(".project-card");
+  const dropdown = page.locator(".projects-dropdown-menu");
+  const projectCards = dropdown.locator(".project-card");
   await expect(projectCards).toHaveCount(expectedNames.length);
 
   for (let i = 0; i < expectedNames.length; i++) {
     await expect(projectCards.nth(i)).toContainText(expectedNames[i]);
   }
+  
+  // Close dropdown
+  const trigger = page.locator(".project-dropdown-trigger");
+  await trigger.click();
+  await expect(dropdown).not.toBeVisible();
 }
 
 /**
  * Asserts that the currently selected project header displays the correct name.
  */
 export async function verifyActiveProjectName(page: Page, expectedName: string) {
-  const activeHeader = page.locator(".active-project-info h2");
+  const activeHeader = page.locator(".project-dropdown-name");
   await expect(activeHeader).toBeVisible();
   await expect(activeHeader).toContainText(expectedName);
 }
@@ -114,9 +135,13 @@ export async function editProject(
   newProjectName: string,
   newStatus?: string
 ) {
-  // Find project card by name and click edit button inside it
-  const projectCard = page.locator(".project-card", { hasText: projectName });
+  await ensureProjectsDropdownOpen(page);
+  
+  const dropdown = page.locator(".projects-dropdown-menu");
+  const projectCard = dropdown.locator(".project-card", { hasText: projectName });
   await expect(projectCard).toBeVisible();
+
+  await projectCard.hover();
 
   const editBtn = projectCard.locator(".btn-edit-project");
   await expect(editBtn).toBeVisible();
@@ -144,6 +169,14 @@ export async function editProject(
 
   // Modal should close
   await expect(modal).not.toBeVisible();
+
+  // Close dropdown if still open
+  const dropdownMenu = page.locator(".projects-dropdown-menu");
+  if (await dropdownMenu.isVisible()) {
+    const trigger = page.locator(".project-dropdown-trigger");
+    await trigger.click();
+    await expect(dropdownMenu).not.toBeVisible();
+  }
 }
 
 export async function addDeliverable(page: Page, title: string, type: string = "Development") {

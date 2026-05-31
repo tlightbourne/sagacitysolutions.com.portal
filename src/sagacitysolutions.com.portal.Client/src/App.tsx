@@ -7,7 +7,6 @@ import type { Project, WorkTask, WorkTaskStatus, WorkTaskType, ProjectStatus } f
 
 import { WelcomeView } from "./components/WelcomeView";
 import { Header } from "./components/Header";
-import { ProjectsPanel } from "./components/ProjectsPanel";
 import { TasksPanel } from "./components/TasksPanel";
 import { TaskDetailsModal } from "./components/TaskDetailsModal";
 import { normalizeProject, normalizeTask } from "./normalize";
@@ -220,22 +219,16 @@ function App() {
 
       {/* ── Main Workspace ── */}
       <main className="portal-workspace">
-        {/* Left Side: Projects Selection */}
-        <ProjectsPanel
+        <TasksPanel
+          projectName={activeProject ? activeProject.name : "Select a Project"}
           projects={projects}
-          activeProjectId={activeProject?.id}
+          activeProject={activeProject}
           portalProjectIds={user.portal_project_ids}
           onSelectProject={setActiveProject}
-          organizations={user.organizations}
-          scope={user.scope}
           onAddProject={handleAddProject}
           onDeleteProject={handleDeleteProject}
           onEditProject={handleEditProject}
-        />
-
-        {/* Right Side: Tasks & Boards */}
-        <TasksPanel
-          projectName={activeProject ? activeProject.name : "Select a Project"}
+          organizations={user.organizations}
           tasks={tasks}
           loading={loading}
           searchQuery={searchQuery}
