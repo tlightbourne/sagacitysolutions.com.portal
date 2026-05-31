@@ -303,6 +303,67 @@ public class WorkTaskTests : PortalWebHostBase
     }
 
     [Fact]
+    public async Task UpdateTask_MultiLevelLeafStatusChange_PropagatesAllTheWayUpToGrandparent()
+    {
+        // Arrange
+        var project = new Project(_fixture.AuthorizedTenantId, "Test Project");
+        using (var db = _fixture.GetPortalDbContext())
+        {
+            await db.Set<Project>().AddAsync(project);
+            await db.SaveChangesAsync();
+        }
+
+        // Grandparent (Level 0)
+        var grandparent = new WorkTask(Guid.NewGuid(), project.Id, "Grandparent Task", WorkTaskType.Research, WorkTaskStatus.NotStarted, 1);
+        // Parent (Level 1)
+        var parent = new WorkTask(Guid.NewGuid(), project.Id, "Parent Task", WorkTaskType.Research, WorkTaskStatus.NotStarted, 1, parentId: grandparent.Id);
+        // Child (Level 2)
+        var child = new WorkTask(Guid.NewGuid(), project.Id, "Child Task", WorkTaskType.Research, WorkTaskStatus.InProgress, 1, parentId: parent.Id);
+
+        using (var db = _fixture.GetPortalDbContext())
+        {
+            db.Set<WorkTask>().Add(grandparent);
+            db.Set<WorkTask>().Add(parent);
+            db.Set<WorkTask>().Add(child);
+            await db.SaveChangesAsync();
+            
+            // Explicitly sync the database status calculation so initial state is InProgress
+            grandparent.SetStatus(WorkTaskStatus.InProgress);
+            parent.SetStatus(WorkTaskStatus.InProgress);
+            db.Entry(grandparent).State = EntityState.Modified;
+            db.Entry(parent).State = EntityState.Modified;
+            await db.SaveChangesAsync();
+        }
+        _fixture.WebHostFactory.RequestContextMock
+            .Setup(x => x.ProjectId).Returns(project.Id);
+
+        var updateRequest = new UpdateTaskRequest(
+            ProjectId: project.Id,
+            Id: child.Id,
+            Title: "Child Task Updated",
+            Type: WorkTaskType.Research,
+            Status: WorkTaskStatus.NotStarted,
+            Hours: 2
+        );
+
+        // Act
+        var response = await _client.PutAsJsonAsync($"/api/projects/{project.Id}/tasks/{child.Id}", updateRequest);
+
+        // Assert
+        response.EnsureSuccessStatusCode();
+        using (var db = _fixture.GetPortalDbContext())
+        {
+            var updatedParent = await db.Set<WorkTask>().IgnoreQueryFilters().FirstOrDefaultAsync(t => t.Id == parent.Id);
+            var updatedGrandparent = await db.Set<WorkTask>().IgnoreQueryFilters().FirstOrDefaultAsync(t => t.Id == grandparent.Id);
+            
+            Assert.NotNull(updatedParent);
+            Assert.NotNull(updatedGrandparent);
+            Assert.Equal(WorkTaskStatus.NotStarted, updatedParent.Status);
+            Assert.Equal(WorkTaskStatus.NotStarted, updatedGrandparent.Status); // status successfully propagated all the way to grandparent!
+        }
+    }
+
+    [Fact]
     public async Task UpdateTask_ParentDirectStatusChange_ReturnsBadRequest()
     {
         // Arrange

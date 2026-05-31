@@ -260,6 +260,11 @@ export function TasksPanel({
         <div className="empty-state">
           <h3>Loading deliverables...</h3>
         </div>
+      ) : projectName === "Select a Project" || !projectName ? (
+        <div className="empty-state">
+          <h3>No active project selected</h3>
+          <p>Get started by selecting an existing project or creating a new one in the sidebar.</p>
+        </div>
       ) : tasks.length === 0 ? (
         <div className="empty-state">
           <h3>No tasks found</h3>

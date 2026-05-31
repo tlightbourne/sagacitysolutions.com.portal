@@ -4,7 +4,7 @@ import { login, logout, fetchApi } from "./api";
 import "./App.css";
 
 import type { Project, WorkTask, WorkTaskStatus, WorkTaskType, ProjectStatus } from "./types";
-import { DEMO_PROJECTS, DEMO_TASKS } from "./demoData";
+
 import { WelcomeView } from "./components/WelcomeView";
 import { Header } from "./components/Header";
 import { ProjectsPanel } from "./components/ProjectsPanel";
@@ -37,16 +37,21 @@ function App() {
         if (data && Array.isArray(data) && data.length > 0) {
           const normalized = data.map(normalizeProject);
           setProjects(normalized);
-          setActiveProject(normalized[0]);
+          setActiveProject((currentActive) => {
+            if (currentActive) {
+              const stillExists = normalized.find((p) => p.id === currentActive.id);
+              if (stillExists) return stillExists;
+            }
+            return normalized[0];
+          });
         } else {
-          // No projects in DB or API empty -> Fallback to gorgeous demo data
-          setProjects(DEMO_PROJECTS);
-          setActiveProject(DEMO_PROJECTS[0]);
+          setProjects([]);
+          setActiveProject(null);
         }
       } catch (err) {
-        console.error("Error loading projects, using demo data:", err);
-        setProjects(DEMO_PROJECTS);
-        setActiveProject(DEMO_PROJECTS[0]);
+        console.error("Error loading projects:", err);
+        setProjects([]);
+        setActiveProject(null);
       } finally {
         setLoading(false);
       }
@@ -68,12 +73,11 @@ function App() {
           const normalized = data.map(normalizeTask);
           setTasks(normalized);
         } else {
-          // No tasks found or endpoint failed -> Use beautiful mock tasks for that project
-          setTasks(DEMO_TASKS[currentProject.id] || []);
+          setTasks([]);
         }
       } catch (err) {
         console.error(`Error loading tasks for ${currentProject.name}:`, err);
-        setTasks(DEMO_TASKS[currentProject.id] || []);
+        setTasks([]);
       }
     }
 

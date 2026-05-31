@@ -33,6 +33,7 @@ public class TaskStatusPropagator : ITaskStatusPropagator
         {
             parentWrite.SetStatus(newStatus);
             await _writeRepository.UpdateAsync(parentWrite, cancellationToken);
+            await _writeRepository.SaveChangesAsync(cancellationToken);
         }
 
         if (parent.ParentId.HasValue)
