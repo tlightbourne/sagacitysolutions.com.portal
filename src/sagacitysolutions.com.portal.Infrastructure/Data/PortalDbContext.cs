@@ -48,7 +48,7 @@ public class PortalDbContext : DbContext
             entity.HasOne<Project>()
                   .WithMany()
                   .HasForeignKey(e => e.ProjectId)
-                  .OnDelete(DeleteBehavior.Restrict);
+                  .OnDelete(DeleteBehavior.Cascade);
             entity.HasMany(e => e.Children)
                   .WithOne(e => e.Parent)
                   .HasForeignKey(e => e.ParentId)

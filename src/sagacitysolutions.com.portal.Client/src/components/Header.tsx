@@ -10,7 +10,6 @@ export function Header({ username, organizations, onLogout }: HeaderProps) {
   return (
     <header className="portal-header">
       <div className="brand-section">
-        <div className="logo-icon">S</div>
         <div className="brand-info">
           <h1>Sagacity Solutions</h1>
           <p>Consulting Portal</p>
@@ -26,9 +25,6 @@ export function Header({ username, organizations, onLogout }: HeaderProps) {
         ))}
         <div className="user-badge">
           <span className="user-name">{username}</span>
-          <div className="user-avatar">
-            {username.substring(0, 2).toUpperCase()}
-          </div>
         </div>
         <button type="button" className="btn-signout" onClick={onLogout}>
           Sign Out

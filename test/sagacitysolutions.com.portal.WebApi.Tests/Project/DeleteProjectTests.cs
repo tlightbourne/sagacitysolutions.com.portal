@@ -1,4 +1,5 @@
 using System.Net;
+using Microsoft.EntityFrameworkCore;
 using sagacitysolutions.com.portal.Domain.Entities;
 using sagacitysolutions.com.portal.WebApi.Tests.Host;
 
@@ -115,6 +116,44 @@ public class DeleteProjectTests : PortalWebHostBase
         finally
         {
             TestAuthHandler.CustomPortalProjectIds = null;
+        }
+    }
+
+    [Fact]
+    public async Task DeleteProject_CascadeDeletesAssociatedTasks()
+    {
+        // Arrange
+        var project = new Project(_fixture.AuthorizedTenantId, "Cascade Delete Project");
+        using (var db = _fixture.GetPortalDbContext())
+        {
+            await db.Set<Project>().AddAsync(project);
+            await db.SaveChangesAsync();
+        }
+
+        var task = new WorkTask(Guid.NewGuid(), project.Id, "Task to be Cascade Deleted", WorkTaskType.Development, WorkTaskStatus.NotStarted, 8);
+        using (var db = _fixture.GetPortalDbContext())
+        {
+            db.Set<WorkTask>().Add(task);
+            await db.SaveChangesAsync();
+        }
+
+        // Authorize this project ID
+        TestAuthHandler.AuthorizedProjectIds.Add(project.Id);
+
+        // Act
+        var response = await _client.DeleteAsync($"/api/projects/{project.Id}");
+
+        // Assert
+        Assert.Equal(HttpStatusCode.NoContent, response.StatusCode);
+
+        // Verify the project and the task were cascade deleted
+        using (var db = _fixture.GetPortalDbContext())
+        {
+            var dbProject = await db.Set<Project>().FindAsync(project.Id);
+            var dbTask = await db.Set<WorkTask>().IgnoreQueryFilters().FirstOrDefaultAsync(t => t.Id == task.Id);
+            
+            Assert.Null(dbProject);
+            Assert.Null(dbTask); // confirmed that the associated task is cascade deleted!
         }
     }
 }
