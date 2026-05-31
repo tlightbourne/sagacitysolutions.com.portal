@@ -33,6 +33,28 @@ public static class TaskRoutes
             }
         });
 
+        group.MapPut("/reorder", async (Guid projectId, ReorderTasksRequest request, IMediator mediator) =>
+        {
+            if (projectId != request.ProjectId)
+            {
+                return Results.BadRequest("Project ID mismatch.");
+            }
+
+            try
+            {
+                var tasks = await mediator.Send(request);
+                return Results.Ok(tasks);
+            }
+            catch (ArgumentException ex)
+            {
+                return Results.BadRequest(ex.Message);
+            }
+            catch (KeyNotFoundException ex)
+            {
+                return Results.NotFound(ex.Message);
+            }
+        });
+
         group.MapPut("/{taskId:guid}", async (Guid projectId, Guid taskId, UpdateTaskRequest request, IMediator mediator) =>
         {
             if (projectId != request.ProjectId)

@@ -74,6 +74,11 @@ public class WorkTask
         }
     }
 
+    public void SetOrder(byte order)
+    {
+        Order = order;
+    }
+
     public WorkTaskStatus CalculateStatusFromChildren()
     {
         if (Children == null || !Children.Any()) return WorkTaskStatus.NotStarted;

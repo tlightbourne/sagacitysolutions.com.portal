@@ -7,15 +7,40 @@ interface TaskCardProps {
   onClick: () => void;
   topLevelId?: string;
   parentPath?: string;
+  draggable?: boolean;
+  onDragStart?: (e: React.DragEvent) => void;
+  onDragEnd?: (e: React.DragEvent) => void;
+  onDragOver?: (e: React.DragEvent) => void;
+  onDragLeave?: (e: React.DragEvent) => void;
+  onDrop?: (e: React.DragEvent) => void;
+  isDragOver?: boolean;
 }
 
-export function TaskCard({ task, onClick, topLevelId, parentPath }: TaskCardProps) {
+export function TaskCard({
+  task,
+  onClick,
+  topLevelId,
+  parentPath,
+  draggable,
+  onDragStart,
+  onDragEnd,
+  onDragOver,
+  onDragLeave,
+  onDrop,
+  isDragOver,
+}: TaskCardProps) {
   const theme = topLevelId ? getTaskColorTheme(topLevelId) : null;
 
   return (
     <div
-      className="task-card"
+      className={`task-card ${isDragOver ? "card-drag-over" : ""}`}
       onClick={onClick}
+      draggable={draggable}
+      onDragStart={onDragStart}
+      onDragEnd={onDragEnd}
+      onDragOver={onDragOver}
+      onDragLeave={onDragLeave}
+      onDrop={onDrop}
       style={theme ? {
         borderLeft: `4px solid ${theme.primary}`,
         background: `linear-gradient(to right, ${theme.background}, var(--glass-bg))`,

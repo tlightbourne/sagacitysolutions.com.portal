@@ -192,6 +192,23 @@ function App() {
     triggerReloadTasks();
   };
 
+  const handleReorderTask = async (taskId: string, newStatus: WorkTaskStatus, newOrder: number) => {
+    if (!activeProject) return;
+    try {
+      const data = await fetchApi(`projects/${activeProject.id}/tasks/reorder`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ projectId: activeProject.id, taskId, newStatus, newOrder }),
+      });
+      if (data && Array.isArray(data)) {
+        setTasks(data.map(normalizeTask));
+      }
+    } catch (err) {
+      console.error("Failed to reorder tasks:", err);
+      triggerReloadTasks();
+    }
+  };
+
   return (
     <div className="portal-container">
       {/* ── Modern Header ── */}
@@ -230,6 +247,7 @@ function App() {
           onAddTask={handleAddTask}
           onEditTask={handleEditTask}
           onDeleteTask={handleDeleteTask}
+          onReorderTask={handleReorderTask}
           scope={user.scope}
         />
       </main>
