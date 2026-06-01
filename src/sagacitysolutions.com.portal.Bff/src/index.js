@@ -70,7 +70,10 @@ app.all("/api/*", async (req, res) => {
 
     // Set the response headers to match the downstream service
     response.headers.forEach((value, key) => {
-      res.setHeader(key, value);
+      const lowerKey = key.toLowerCase();
+      if (!['content-length', 'transfer-encoding', 'content-encoding'].includes(lowerKey)) {
+        res.setHeader(key, value);
+      }
     });
     res.status(response.status);
     const arrayBuffer = await response.arrayBuffer();

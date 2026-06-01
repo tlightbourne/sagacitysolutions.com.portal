@@ -9,43 +9,8 @@ export class MockDatabase {
   }
 
   public reset() {
-    this.projects = [
-      {
-        id: "11111111-1111-1111-1111-111111111111",
-        tenantId: "tenant-1",
-        name: "Acme Corp Cloud Migration",
-        status: "Active",
-      },
-      {
-        id: "22222222-2222-2222-2222-222222222222",
-        tenantId: "tenant-1",
-        name: "Fintech Core Ledger API",
-        status: "Active",
-      },
-    ];
-
-    this.tasks = [
-      {
-        id: "t1",
-        projectId: "11111111-1111-1111-1111-111111111111",
-        title: "Set up AWS Landing Zone & IAM Roles",
-        type: "Research",
-        status: "Completed",
-        hours: 12,
-        order: 1,
-        children: []
-      },
-      {
-        id: "t2",
-        projectId: "11111111-1111-1111-1111-111111111111",
-        title: "Dockerize existing Node.js Microservices",
-        type: "Development",
-        status: "InProgress",
-        hours: 18,
-        order: 2,
-        children: []
-      },
-    ];
+    this.projects = [];
+    this.tasks = [];
   }
 
   public getProjects() {
@@ -94,7 +59,7 @@ export class MockDatabase {
       parentId: body.parentId || null,
       title: body.title,
       type: body.type || "Development",
-      status: "NotStarted",
+      status: body.status || "NotStarted",
       hours: body.hours || 0,
       order: 1,
       children: []

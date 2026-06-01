@@ -70,6 +70,11 @@ export async function authenticateSession(page: Page, user: TestUser = PREDEFINE
       
       const submitBtn = page.locator("button[type='submit']").first();
       await submitBtn.click();
+      
+      // Wait for SSO redirect to finish and the application to load
+      await page.waitForURL(/\/$/, { timeout: 15000 });
+      // Also wait for the main app UI to render so we know auth cookies are set
+      await page.waitForSelector(".user-name", { timeout: 15000 });
     }
   } else {
     // Mock E2E Auth:

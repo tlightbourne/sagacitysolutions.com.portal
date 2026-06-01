@@ -2,6 +2,7 @@ import { test, expect } from "@playwright/test";
 import { authenticateSession, PREDEFINED_USERS } from "./helpers/auth";
 import { mockMe, applyMockRoutes } from "./mockRoutes";
 import { MockDatabase } from "./helpers/mockDatabase";
+import { seedProject, clearAllProjects } from "./helpers/seed";
 import {
   selectProject,
   addDeliverable,
@@ -16,15 +17,20 @@ test.describe("Portal E2E - Tasks", () => {
 
   test.beforeEach(async ({ page }) => {
     db = new MockDatabase();
-    // Start with a clean slate for tasks on this project for the hierarchical test
-    db.tasks = db.tasks.filter(t => t.projectId !== "11111111-1111-1111-1111-111111111111");
 
     await mockMe(page, user);
     await applyMockRoutes(page, db);
     await authenticateSession(page, user);
     
-    // Select the first project automatically to start on the task board
-    await selectProject(page, "Acme Corp Cloud Migration");
+    // Ensure DB is clean before seeding (critical for MOCK_API=false)
+    await clearAllProjects(page);
+    
+    // Seed isolated test data
+    await seedProject(page, "Hierarchical E2E Project");
+    await page.reload();
+
+    // Select the isolated project to start on the task board
+    await selectProject(page, "Hierarchical E2E Project");
   });
 
   test("should support hierarchical task CRUD and status propagation", async ({ page }) => {
