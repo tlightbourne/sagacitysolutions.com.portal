@@ -17,6 +17,8 @@ interface RawProject {
   Name?: string;
   status?: string;
   Status?: string;
+  version?: number;
+  Version?: number;
 }
 
 interface RawAttachment {
@@ -66,6 +68,8 @@ interface RawTask {
   Attachments?: RawAttachment[];
   taskLinks?: RawTaskLink[];
   TaskLinks?: RawTaskLink[];
+  version?: number;
+  Version?: number;
 }
 
 /**
@@ -78,6 +82,7 @@ export function normalizeProject(p: RawProject): Project {
     tenantId: p.tenantId ?? p.TenantId ?? "",
     name: p.name ?? p.Name ?? "",
     status: (p.status ?? p.Status ?? "Active") as ProjectStatus,
+    version: p.version ?? p.Version ?? 0,
   };
 }
 
@@ -131,5 +136,6 @@ export function normalizeTask(t: RawTask): WorkTask {
     taskLinks: Array.isArray(t.taskLinks ?? t.TaskLinks)
       ? (t.taskLinks ?? t.TaskLinks)!.map(normalizeTaskLink)
       : undefined,
+    version: t.version ?? t.Version ?? 0,
   };
 }

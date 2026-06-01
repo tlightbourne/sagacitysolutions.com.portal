@@ -12,6 +12,7 @@ public record UpdateTaskRequest(
     string Title,
     WorkTaskType Type,
     WorkTaskStatus Status,
+    uint Version = 0,
     string? Description = null,
     byte? Hours = null
 ) : ICommand<WorkTask>;
@@ -59,7 +60,7 @@ public class UpdateTaskHandler : IRequestHandler<UpdateTaskRequest, WorkTask>
             request.Status
         );
 
-        await _writeRepository.UpdateAsync(task, cancellationToken);
+        await _writeRepository.UpdateAsync(task, request.Version, cancellationToken);
         await _writeRepository.SaveChangesAsync(cancellationToken);
 
         // Propagate status upwards recursively if it's a leaf task and status changed

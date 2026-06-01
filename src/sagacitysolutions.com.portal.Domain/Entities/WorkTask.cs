@@ -12,6 +12,7 @@ public class WorkTask
     public byte? Hours { get; private set; }
     public byte Order { get; private set; }
     public DateTime? CompletedAt { get; private set; }
+    public uint Version { get; private set; }
 
     public ICollection<Attachment> Attachments { get; } = new List<Attachment>();
     [System.Text.Json.Serialization.JsonIgnore]

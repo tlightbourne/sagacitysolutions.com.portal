@@ -14,6 +14,7 @@ describe("normalizeProject", () => {
       tenantId: "t1",
       name: "Project A",
       status: "Active",
+      version: 0,
     });
 
     const rawCamel = { id: "p2", tenantId: "t2", name: "Project B", status: "Completed" };
@@ -22,6 +23,7 @@ describe("normalizeProject", () => {
       tenantId: "t2",
       name: "Project B",
       status: "Completed",
+      version: 0,
     });
   });
 

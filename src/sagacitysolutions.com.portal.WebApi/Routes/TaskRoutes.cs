@@ -1,4 +1,5 @@
 using MediatR;
+using Microsoft.EntityFrameworkCore;
 using sagacitysolutions.com.portal.Application.Features.Task;
 
 namespace sagacitysolutions.com.portal.WebApi.Routes;
@@ -53,6 +54,10 @@ public static class TaskRoutes
             {
                 return Results.NotFound(ex.Message);
             }
+            catch (DbUpdateConcurrencyException)
+            {
+                return Results.Conflict("The record was modified by another user. Please reload.");
+            }
         });
 
         group.MapPut("/{taskId:guid}", async (Guid projectId, Guid taskId, UpdateTaskRequest request, IMediator mediator) =>
@@ -78,6 +83,10 @@ public static class TaskRoutes
             catch (KeyNotFoundException ex)
             {
                 return Results.NotFound(ex.Message);
+            }
+            catch (DbUpdateConcurrencyException)
+            {
+                return Results.Conflict("The record was modified by another user. Please reload.");
             }
         });
 

@@ -511,4 +511,58 @@ public class WorkTaskTests : PortalWebHostBase
         parent5.Children.Add(new WorkTask(Guid.NewGuid(), projectId, "C2", WorkTaskType.Development, WorkTaskStatus.NotStarted, 2));
         Assert.Equal(WorkTaskStatus.NotStarted, parent5.CalculateStatusFromChildren());
     }
+
+    [Fact]
+    public async Task UpdateTask_ReturnsConflict_WhenVersionConcurrencyTokenMismatch()
+    {
+        // Arrange
+        var project = new Project(_fixture.AuthorizedTenantId, "Test Project OCC");
+        using (var db = _fixture.GetPortalDbContext())
+        {
+            await db.Set<Project>().AddAsync(project);
+            await db.SaveChangesAsync();
+        }
+
+        var task = new WorkTask(Guid.NewGuid(), project.Id, "Task OCC Test", WorkTaskType.Development, WorkTaskStatus.NotStarted, 1);
+        using (var db = _fixture.GetPortalDbContext())
+        {
+            await db.Set<WorkTask>().AddAsync(task);
+            await db.SaveChangesAsync();
+        }
+
+        _fixture.WebHostFactory.RequestContextMock
+            .Setup(x => x.ProjectId).Returns(project.Id);
+
+        // Fetch original version
+        uint originalVersion;
+        using (var db = _fixture.GetPortalDbContext())
+        {
+            var dbTask = await db.Set<WorkTask>().IgnoreQueryFilters().FirstOrDefaultAsync(t => t.Id == task.Id);
+            originalVersion = dbTask!.Version;
+        }
+
+        // 1. Update with incorrect version token -> should fail with 409 Conflict
+        var wrongVersionRequest = new UpdateTaskRequest(
+            ProjectId: project.Id,
+            Id: task.Id,
+            Title: "Incorrect OCC Title",
+            Type: WorkTaskType.Development,
+            Status: WorkTaskStatus.InProgress,
+            Version: originalVersion + 999
+        );
+        var wrongVersionResponse = await _client.PutAsJsonAsync($"/api/projects/{project.Id}/tasks/{task.Id}", wrongVersionRequest);
+        Assert.Equal(System.Net.HttpStatusCode.Conflict, wrongVersionResponse.StatusCode);
+
+        // 2. Update with correct version token -> should succeed with 200 OK
+        var correctVersionRequest = new UpdateTaskRequest(
+            ProjectId: project.Id,
+            Id: task.Id,
+            Title: "Correct OCC Title",
+            Type: WorkTaskType.Development,
+            Status: WorkTaskStatus.InProgress,
+            Version: originalVersion
+        );
+        var correctVersionResponse = await _client.PutAsJsonAsync($"/api/projects/{project.Id}/tasks/{task.Id}", correctVersionRequest);
+        Assert.Equal(System.Net.HttpStatusCode.OK, correctVersionResponse.StatusCode);
+    }
 }

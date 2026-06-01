@@ -63,6 +63,10 @@ export async function selectProject(page: Page, selector: number | string) {
 
   await expect(targetCard).toBeVisible();
   await targetCard.click();
+
+  // Wait for the loading state to complete
+  const loadingIndicator = page.locator(".empty-state", { hasText: "Loading deliverables..." });
+  await expect(loadingIndicator).not.toBeVisible({ timeout: 10000 });
 }
 
 /**
@@ -180,16 +184,20 @@ export async function editProject(
 }
 
 export async function addDeliverable(page: Page, title: string, type: string = "Development") {
-  const emptyStateAddBtn = page.locator(".empty-state .btn-add-project");
-  if (await emptyStateAddBtn.isVisible()) {
-    await emptyStateAddBtn.click();
-  } else {
-    const deliverableCol = page.locator(".deliverables-column");
-    await expect(deliverableCol).toBeVisible();
+  await Promise.any([
+    page.waitForSelector(".deliverables-column", { state: "visible", timeout: 10000 }),
+    page.waitForSelector(".empty-state .btn-add-project", { state: "visible", timeout: 10000 })
+  ]).catch(() => {});
 
+  const deliverableCol = page.locator(".deliverables-column");
+  if (await deliverableCol.isVisible()) {
     const addBtn = deliverableCol.locator(".btn-add-project");
     await expect(addBtn).toBeVisible();
     await addBtn.click();
+  } else {
+    const emptyStateAddBtn = page.locator(".empty-state .btn-add-project");
+    await expect(emptyStateAddBtn).toBeVisible();
+    await emptyStateAddBtn.click();
   }
 
   const modal = page.locator(".modal-overlay");

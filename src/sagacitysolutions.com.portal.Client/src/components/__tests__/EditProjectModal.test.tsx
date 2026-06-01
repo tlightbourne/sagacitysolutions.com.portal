@@ -9,6 +9,7 @@ describe("EditProjectModal", () => {
     tenantId: "tenant1",
     name: "Existing Project Name",
     status: "Active",
+    version: 42,
   };
 
   it("should pre-populate fields and submit updated values successfully", async () => {
@@ -47,7 +48,7 @@ describe("EditProjectModal", () => {
 
     // Await submit callback
     await waitFor(() => {
-      expect(mockOnEditProject).toHaveBeenCalledWith("proj-1", "Updated Project Name", "Completed");
+      expect(mockOnEditProject).toHaveBeenCalledWith("proj-1", "Updated Project Name", "Completed", 42);
       expect(mockOnClose).toHaveBeenCalled();
     });
   });

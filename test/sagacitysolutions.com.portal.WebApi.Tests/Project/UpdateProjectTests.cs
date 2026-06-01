@@ -181,4 +181,37 @@ public class UpdateProjectTests : PortalWebHostBase
             TestAuthHandler.CustomPortalProjectIds = null;
         }
     }
+
+    [Fact]
+    public async Task UpdateProject_ReturnsConflict_WhenVersionConcurrencyTokenMismatch()
+    {
+        // Arrange
+        var project = new Project(_fixture.AuthorizedTenantId, "Project OCC Test");
+        using (var db = _fixture.GetPortalDbContext())
+        {
+            await db.Set<Project>().AddAsync(project);
+            await db.SaveChangesAsync();
+        }
+
+        // Authorize this project ID
+        TestAuthHandler.AuthorizedProjectIds.Add(project.Id);
+
+        // Fetch original version
+        uint originalVersion;
+        using (var db = _fixture.GetPortalDbContext())
+        {
+            var dbProject = await db.Set<Project>().FindAsync(project.Id);
+            originalVersion = dbProject!.Version;
+        }
+
+        // 1. Attempt update with wrong version -> should fail with 409 Conflict
+        var wrongVersionRequest = new UpdateProjectRequest(project.Id, "Updated OCC Fail", ProjectStatus.Active, originalVersion + 999);
+        var wrongVersionResponse = await _client.PutAsJsonAsync($"/api/projects/{project.Id}", wrongVersionRequest);
+        Assert.Equal(HttpStatusCode.Conflict, wrongVersionResponse.StatusCode);
+
+        // 2. Attempt update with correct version -> should succeed with 200 OK
+        var correctVersionRequest = new UpdateProjectRequest(project.Id, "Updated OCC Success", ProjectStatus.Active, originalVersion);
+        var correctVersionResponse = await _client.PutAsJsonAsync($"/api/projects/{project.Id}", correctVersionRequest);
+        Assert.Equal(HttpStatusCode.OK, correctVersionResponse.StatusCode);
+    }
 }

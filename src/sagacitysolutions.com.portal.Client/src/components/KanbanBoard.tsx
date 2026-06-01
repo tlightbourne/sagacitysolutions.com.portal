@@ -9,7 +9,7 @@ interface KanbanBoardProps {
     filteredLeafTasks: WorkTask[];
     isCompactView: boolean;
     canWrite: boolean;
-    onReorderTask?: (taskId: string, newStatus: WorkTaskStatus, newOrder: number) => Promise<void>;
+    onReorderTask?: (taskId: string, newStatus: WorkTaskStatus, newOrder: number, version: number) => Promise<void>;
     onOpenEditTask: (task: WorkTask) => void;
     statusLabelHelper: (status: WorkTaskStatus) => string;
     getTopLevelAncestorId: (taskId: string) => string;
@@ -65,8 +65,11 @@ export function KanbanBoard({
         const taskId = e.dataTransfer.getData("text/plain") || draggedTaskId;
         if (!taskId || taskId === targetTask.id) return;
 
+        const draggedTask = filteredLeafTasks.find(t => t.id === taskId);
+        const version = draggedTask ? draggedTask.version : 0;
+
         if (onReorderTask) {
-            await onReorderTask(taskId, targetTask.status, targetTask.order);
+            await onReorderTask(taskId, targetTask.status, targetTask.order, version);
         }
         setDraggedTaskId(null);
     };
@@ -88,13 +91,16 @@ export function KanbanBoard({
         const taskId = e.dataTransfer.getData("text/plain") || draggedTaskId;
         if (!taskId) return;
 
+        const draggedTask = filteredLeafTasks.find(t => t.id === taskId);
+        const version = draggedTask ? draggedTask.version : 0;
+
         // Calculate order to append to the end
         const columnTasks = getLeafTasksByStatus(status);
         const isSameColumn = columnTasks.some(t => t.id === taskId);
         const newOrder = isSameColumn ? columnTasks.length : columnTasks.length + 1;
 
         if (onReorderTask) {
-            await onReorderTask(taskId, status, newOrder);
+            await onReorderTask(taskId, status, newOrder, version);
         }
         setDraggedTaskId(null);
     };

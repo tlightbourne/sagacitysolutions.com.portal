@@ -21,7 +21,7 @@ function App() {
   const [searchQuery, setSearchQuery] = useState("");
   const [taskTypeFilter, setTaskTypeFilter] = useState<string>("All");
 
-  const [loading, setLoading] = useState(false);
+  const [loading, setLoading] = useState(true);
   const [reloadTasksCount, setReloadTasksCount] = useState(0);
   const triggerReloadTasks = () => setReloadTasksCount((prev) => prev + 1);
 
@@ -46,12 +46,12 @@ function App() {
         } else {
           setProjects([]);
           setActiveProject(null);
+          setLoading(false);
         }
       } catch (err) {
         console.error("Error loading projects:", err);
         setProjects([]);
         setActiveProject(null);
-      } finally {
         setLoading(false);
       }
     }
@@ -66,6 +66,7 @@ function App() {
 
     async function loadTasks() {
       if (!currentProject) return;
+      setLoading(true);
       try {
         const data = await fetchApi(`projects/${currentProject.id}/tasks`);
         if (data && Array.isArray(data) && data.length > 0) {
@@ -77,6 +78,8 @@ function App() {
       } catch (err) {
         console.error(`Error loading tasks for ${currentProject.name}:`, err);
         setTasks([]);
+      } finally {
+        setLoading(false);
       }
     }
 
@@ -143,13 +146,13 @@ function App() {
     });
   };
 
-  const handleEditProject = async (projectId: string, name: string, status: ProjectStatus) => {
+  const handleEditProject = async (projectId: string, name: string, status: ProjectStatus, version: number) => {
     const updatedProject = await fetchApi(`projects/${projectId}`, {
       method: "PUT",
       headers: {
         "Content-Type": "application/json",
       },
-      body: JSON.stringify({ projectId, name, status }),
+      body: JSON.stringify({ projectId, name, status, version }),
     });
 
     if (updatedProject) {
@@ -173,12 +176,12 @@ function App() {
     triggerReloadTasks();
   };
 
-  const handleEditTask = async (taskId: string, title: string, type: WorkTaskType, status: WorkTaskStatus, description?: string, hours?: number) => {
+  const handleEditTask = async (taskId: string, title: string, type: WorkTaskType, status: WorkTaskStatus, version: number, description?: string, hours?: number) => {
     if (!activeProject) return;
     await fetchApi(`projects/${activeProject.id}/tasks/${taskId}`, {
       method: "PUT",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ projectId: activeProject.id, id: taskId, title, type, status, description, hours }),
+      body: JSON.stringify({ projectId: activeProject.id, id: taskId, title, type, status, description, hours, version }),
     });
     triggerReloadTasks();
   };
@@ -191,13 +194,13 @@ function App() {
     triggerReloadTasks();
   };
 
-  const handleReorderTask = async (taskId: string, newStatus: WorkTaskStatus, newOrder: number) => {
+  const handleReorderTask = async (taskId: string, newStatus: WorkTaskStatus, newOrder: number, version: number) => {
     if (!activeProject) return;
     try {
       const data = await fetchApi(`projects/${activeProject.id}/tasks/reorder`, {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ projectId: activeProject.id, taskId, newStatus, newOrder }),
+        body: JSON.stringify({ projectId: activeProject.id, taskId, newStatus, newOrder, version }),
       });
       if (data && Array.isArray(data)) {
         setTasks(data.map(normalizeTask));

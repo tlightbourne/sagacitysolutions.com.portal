@@ -18,7 +18,7 @@ interface TasksPanelProps {
   onSelectProject: (project: Project) => void;
   onAddProject: (tenantId: string, name: string) => Promise<void>;
   onDeleteProject: (projectId: string) => Promise<void>;
-  onEditProject: (projectId: string, name: string, status: ProjectStatus) => Promise<void>;
+  onEditProject: (projectId: string, name: string, status: ProjectStatus, version: number) => Promise<void>;
   organizations: Record<string, string>;
   tasks: WorkTask[];
   loading: boolean;
@@ -29,9 +29,9 @@ interface TasksPanelProps {
   onSelectTask: (task: WorkTask) => void;
   statusLabelHelper: (status: WorkTaskStatus) => string;
   onAddTask: (title: string, type: WorkTaskType, description?: string, hours?: number, parentId?: string) => Promise<void>;
-  onEditTask: (taskId: string, title: string, type: WorkTaskType, status: WorkTaskStatus, description?: string, hours?: number) => Promise<void>;
+  onEditTask: (taskId: string, title: string, type: WorkTaskType, status: WorkTaskStatus, version: number, description?: string, hours?: number) => Promise<void>;
   onDeleteTask: (taskId: string) => Promise<void>;
-  onReorderTask?: (taskId: string, newStatus: WorkTaskStatus, newOrder: number) => Promise<void>;
+  onReorderTask?: (taskId: string, newStatus: WorkTaskStatus, newOrder: number, version: number) => Promise<void>;
   scope?: string;
 }
 

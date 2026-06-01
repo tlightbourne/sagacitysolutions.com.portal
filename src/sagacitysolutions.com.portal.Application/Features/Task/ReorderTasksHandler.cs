@@ -3,11 +3,6 @@ using sagacitysolutions.com.portal.Application.Common.Messaging;
 using sagacitysolutions.com.portal.Application.Features.Task.Queries;
 using sagacitysolutions.com.portal.Application.Repository;
 using sagacitysolutions.com.portal.Domain.Entities;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading;
-using System.Threading.Tasks;
 
 namespace sagacitysolutions.com.portal.Application.Features.Task;
 
@@ -15,7 +10,8 @@ public record ReorderTasksRequest(
     Guid ProjectId,
     Guid TaskId,
     WorkTaskStatus NewStatus,
-    byte NewOrder
+    byte NewOrder,
+    uint Version = 0
 ) : ICommand<IEnumerable<WorkTask>>;
 
 public class ReorderTasksHandler : IRequestHandler<ReorderTasksRequest, IEnumerable<WorkTask>>
@@ -122,7 +118,14 @@ public class ReorderTasksHandler : IRequestHandler<ReorderTasksRequest, IEnumera
 
                     if (modified)
                     {
-                        await _writeRepository.UpdateAsync(writeEntity, cancellationToken);
+                        if (isTarget)
+                        {
+                            await _writeRepository.UpdateAsync(writeEntity, request.Version, cancellationToken);
+                        }
+                        else
+                        {
+                            await _writeRepository.UpdateAsync(writeEntity, cancellationToken);
+                        }
                     }
                 }
             }

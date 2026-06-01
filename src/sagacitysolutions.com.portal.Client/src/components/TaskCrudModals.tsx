@@ -126,7 +126,7 @@ export function CreateTaskModal({
 interface EditTaskModalProps {
   task: WorkTask;
   onClose: () => void;
-  onEditTask: (taskId: string, title: string, type: WorkTaskType, status: WorkTaskStatus, description?: string, hours?: number) => Promise<void>;
+  onEditTask: (taskId: string, title: string, type: WorkTaskType, status: WorkTaskStatus, version: number, description?: string, hours?: number) => Promise<void>;
   onDeleteTask: (taskId: string) => Promise<void>;
   canWrite: boolean;
 }
@@ -165,6 +165,7 @@ export function EditTaskModal({
         title.trim(),
         type,
         status,
+        task.version,
         description.trim() || undefined,
         parsedHours
       );

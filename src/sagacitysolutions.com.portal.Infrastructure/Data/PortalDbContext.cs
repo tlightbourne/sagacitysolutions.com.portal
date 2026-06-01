@@ -1,5 +1,6 @@
 using Microsoft.EntityFrameworkCore;
 using Npgsql.EntityFrameworkCore.PostgreSQL.ValueGeneration;
+using Npgsql.EntityFrameworkCore.PostgreSQL;
 using sagacitysolutions.com.portal.Application.Identity;
 using sagacitysolutions.com.portal.Domain.Entities;
 
@@ -35,6 +36,7 @@ public class PortalDbContext : DbContext
                   .HasValueGenerator<NpgsqlSequentialGuidValueGenerator>();
             entity.Property(e => e.Name).HasMaxLength(100);
             entity.Property(e => e.Status).HasConversion<string>().HasMaxLength(50);
+            entity.Property(e => e.Version).IsRowVersion();
         });
 
         modelBuilder.Entity<WorkTask>(entity =>
@@ -61,6 +63,7 @@ public class PortalDbContext : DbContext
                   .WithOne(e => e.Task)
                   .HasForeignKey(e => e.TaskId)
                   .OnDelete(DeleteBehavior.Cascade);
+            entity.Property(e => e.Version).IsRowVersion();
         });
 
         modelBuilder.Entity<Attachment>(entity =>

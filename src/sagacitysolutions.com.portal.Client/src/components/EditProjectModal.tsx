@@ -5,7 +5,7 @@ import { CloseIcon } from "./Icons";
 interface EditProjectModalProps {
   project: Project;
   onClose: () => void;
-  onEditProject: (projectId: string, name: string, status: ProjectStatus) => Promise<void>;
+  onEditProject: (projectId: string, name: string, status: ProjectStatus, version: number) => Promise<void>;
 }
 
 export function EditProjectModal({
@@ -28,7 +28,7 @@ export function EditProjectModal({
     setEditSubmitting(true);
     setEditError("");
     try {
-      await onEditProject(project.id, editProjectName.trim(), editProjectStatus);
+      await onEditProject(project.id, editProjectName.trim(), editProjectStatus, project.version);
       onClose();
     } catch (err) {
       const message = err instanceof Error ? err.message : "Failed to update project.";

@@ -28,6 +28,7 @@ export interface WorkTask {
   children?: WorkTask[];
   attachments?: Attachment[];
   taskLinks?: TaskLink[];
+  version: number;
 }
 
 export type ProjectStatus = "Proposed" | "Active" | "OnHold" | "Completed" | "Archived";
@@ -37,4 +38,5 @@ export interface Project {
   tenantId: string;
   name: string;
   status: ProjectStatus;
+  version: number;
 }

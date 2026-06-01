@@ -1,4 +1,5 @@
 using MediatR;
+using Microsoft.EntityFrameworkCore;
 using System.Security.Claims;
 using sagacitysolutions.com.portal.Application.Features.Projects;
 
@@ -67,6 +68,10 @@ public static class ProjectRoutes
             catch (ArgumentException ex)
             {
                 return Results.BadRequest(ex.Message);
+            }
+            catch (DbUpdateConcurrencyException)
+            {
+                return Results.Conflict("The record was modified by another user. Please reload.");
             }
             catch (InvalidOperationException ex)
             {

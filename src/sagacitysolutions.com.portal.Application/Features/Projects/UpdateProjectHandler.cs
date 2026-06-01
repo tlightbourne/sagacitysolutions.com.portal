@@ -5,7 +5,7 @@ using sagacitysolutions.com.portal.Domain.Entities;
 
 namespace sagacitysolutions.com.portal.Application.Features.Projects;
 
-public record UpdateProjectRequest(Guid ProjectId, string Name, ProjectStatus Status) : ICommand<Project>;
+public record UpdateProjectRequest(Guid ProjectId, string Name, ProjectStatus Status, uint Version = 0) : ICommand<Project>;
 
 public class UpdateProjectHandler : IRequestHandler<UpdateProjectRequest, Project>
 {
@@ -25,10 +25,10 @@ public class UpdateProjectHandler : IRequestHandler<UpdateProjectRequest, Projec
 
         var project = await _repository.GetByIdAsync(request.ProjectId, cancellationToken);
         project.Update(request.Name, request.Status);
-        
-        await _repository.UpdateAsync(project, cancellationToken);
+
+        await _repository.UpdateAsync(project, request.Version, cancellationToken);
         await _repository.SaveChangesAsync(cancellationToken);
-        
+
         return project;
     }
 }

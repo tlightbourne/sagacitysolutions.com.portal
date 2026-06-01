@@ -11,10 +11,10 @@ public class WriteRepository<TEntity> : IWriteRepository<TEntity> where TEntity 
     {
         _context = context;
     }
-    
+
     public async Task<TEntity> GetByIdAsync(Guid id, CancellationToken cancellationToken = default)
     {
-        var entity =await _context.Set<TEntity>().FindAsync(id, cancellationToken);
+        var entity = await _context.Set<TEntity>().FindAsync(id, cancellationToken);
         if (entity == null)
         {
             throw new InvalidOperationException($"Entity of type {typeof(TEntity).Name} with ID {id} not found.");
@@ -30,6 +30,16 @@ public class WriteRepository<TEntity> : IWriteRepository<TEntity> where TEntity 
     public Task UpdateAsync(TEntity entity, CancellationToken cancellationToken = default)
     {
         _context.Set<TEntity>().Update(entity);
+        return Task.CompletedTask;
+    }
+
+    public Task UpdateAsync(TEntity entity, uint version, CancellationToken cancellationToken = default)
+    {
+        _context.Set<TEntity>().Update(entity);
+        if (version != 0)
+        {
+            _context.Entry(entity).Property("Version").OriginalValue = version;
+        }
         return Task.CompletedTask;
     }
 
