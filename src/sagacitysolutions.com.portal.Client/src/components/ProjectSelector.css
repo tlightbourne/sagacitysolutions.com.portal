@@ -1,0 +1,294 @@
+/* ── Top Projects Selector Dropdown ── */
+.project-selector-container {
+    position: relative;
+    display: inline-block;
+    z-index: 40;
+}
+
+.project-dropdown-trigger {
+    display: flex;
+    align-items: center;
+    gap: 0.65rem;
+    background: rgba(255, 255, 255, 0.02);
+    border: 1px solid rgba(255, 255, 255, 0.05);
+    padding: 0.6rem 1.1rem;
+    border-radius: 12px;
+    cursor: pointer;
+    color: var(--text-primary);
+    font-family: var(--font-heading);
+    font-size: 1.25rem;
+    font-weight: 600;
+    transition: var(--transition-smooth);
+    outline: none;
+    max-width: 450px;
+}
+
+.project-dropdown-trigger:hover {
+    background: rgba(170, 59, 255, 0.06);
+    border-color: rgba(170, 59, 255, 0.3);
+    box-shadow: 0 0 15px rgba(170, 59, 255, 0.1);
+}
+
+.project-dropdown-trigger svg {
+    color: var(--accent-light);
+    flex-shrink: 0;
+}
+
+.dropdown-caret {
+    font-size: 0.75rem;
+    color: var(--text-secondary);
+    transition: transform 0.3s ease;
+    margin-left: 0.5rem;
+}
+
+.dropdown-caret.open {
+    transform: rotate(180deg);
+}
+
+.project-dropdown-name {
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    max-width: 320px;
+}
+
+.projects-dropdown-menu {
+    position: absolute;
+    top: calc(100% + 8px);
+    left: 0;
+    width: 360px;
+    background: rgba(12, 8, 23, 0.98);
+    backdrop-filter: blur(24px);
+    border: 1px solid rgba(170, 59, 255, 0.25);
+    border-radius: 18px;
+    box-shadow: 0 20px 40px rgba(0, 0, 0, 0.6), var(--glow-shadow);
+    padding: 1rem;
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+    animation: fadeIn 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+    z-index: 99;
+}
+
+.dropdown-search-wrapper {
+    position: relative;
+    width: 100%;
+}
+
+.dropdown-search-input {
+    width: 100%;
+    background: rgba(255, 255, 255, 0.03);
+    border: 1px solid rgba(255, 255, 255, 0.06);
+    border-radius: 10px;
+    padding: 0.5rem 0.85rem;
+    color: white;
+    font-size: 0.85rem;
+    outline: none;
+    transition: var(--transition-fast);
+}
+
+.dropdown-search-input:focus {
+    border-color: var(--accent);
+    background: rgba(255, 255, 255, 0.05);
+    box-shadow: 0 0 10px rgba(170, 59, 255, 0.15);
+}
+
+.dropdown-filter-toggle {
+    display: flex;
+    width: 100%;
+}
+
+.btn-toggle-archived {
+    background: transparent;
+    border: 1px solid rgba(255, 255, 255, 0.05);
+    color: var(--text-secondary);
+    font-size: 0.75rem;
+    font-weight: 600;
+    border-radius: 8px;
+    padding: 0.45rem 0.75rem;
+    display: flex;
+    align-items: center;
+    gap: 0.4rem;
+    cursor: pointer;
+    width: 100%;
+    justify-content: center;
+    transition: var(--transition-fast);
+}
+
+.btn-toggle-archived:hover {
+    background: rgba(255, 255, 255, 0.02);
+    color: white;
+}
+
+.btn-toggle-archived.active {
+    background: rgba(170, 59, 255, 0.1);
+    border-color: rgba(170, 59, 255, 0.25);
+    color: var(--accent-light);
+}
+
+.dropdown-projects-list {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+    max-height: 260px;
+    overflow-y: auto;
+    padding-right: 0.25rem;
+    margin-top: 0.65rem;
+    padding-top: 0.35rem;
+}
+
+/* Custom dropdown scrollbar */
+.dropdown-projects-list::-webkit-scrollbar {
+    width: 4px;
+}
+
+.dropdown-projects-list::-webkit-scrollbar-track {
+    background: transparent;
+}
+
+.dropdown-projects-list::-webkit-scrollbar-thumb {
+    background: rgba(255, 255, 255, 0.1);
+    border-radius: 20px;
+}
+
+.dropdown-projects-list::-webkit-scrollbar-thumb:hover {
+    background: rgba(170, 59, 255, 0.3);
+}
+
+.dropdown-empty {
+    font-size: 0.82rem;
+    color: var(--text-muted);
+    text-align: center;
+    padding: 1.5rem 1rem;
+    font-style: italic;
+}
+
+.projects-dropdown-menu .project-card {
+    background: rgba(255, 255, 255, 0.01);
+    border: 1px solid rgba(255, 255, 255, 0.04);
+    border-radius: 12px;
+    padding: 0.75rem 0.85rem;
+    cursor: pointer;
+    display: flex;
+    flex-direction: column;
+    gap: 0.25rem;
+    position: relative;
+    text-align: left;
+    transition: var(--transition-smooth);
+}
+
+.projects-dropdown-menu .project-card:hover {
+    background: rgba(170, 59, 255, 0.05);
+    border-color: rgba(170, 59, 255, 0.2);
+}
+
+.projects-dropdown-menu .project-card.active {
+    background: rgba(170, 59, 255, 0.12);
+    border-color: var(--accent-light);
+    box-shadow: 0 0 12px rgba(170, 59, 255, 0.15);
+}
+
+.project-card-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    width: 100%;
+}
+
+.project-card-header .project-name {
+    font-size: 0.88rem;
+    font-weight: 600;
+    color: white;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    max-width: 200px;
+}
+
+.project-actions {
+    display: flex;
+    gap: 0.35rem;
+    opacity: 0;
+    transition: opacity 0.2s ease;
+}
+
+.projects-dropdown-menu .project-card:hover .project-actions {
+    opacity: 1;
+}
+
+.btn-edit-project,
+.btn-delete-project-new {
+    background: transparent;
+    border: none;
+    color: var(--text-secondary);
+    cursor: pointer;
+    padding: 0.25rem;
+    border-radius: 6px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: var(--transition-fast);
+}
+
+.btn-edit-project:hover {
+    color: var(--accent-light);
+    background: rgba(170, 59, 255, 0.1);
+}
+
+.btn-delete-project-new:hover {
+    color: var(--danger);
+    background: var(--danger-bg);
+}
+
+.project-id-copy-btn {
+    display: flex;
+    align-items: center;
+    gap: 0.25rem;
+    background: transparent;
+    border: none;
+    font-size: 0.7rem;
+    color: var(--text-muted);
+    cursor: pointer;
+    padding: 0;
+    transition: var(--transition-fast);
+}
+
+.project-id-copy-btn:hover {
+    color: white;
+}
+
+.project-id-text {
+    font-family: monospace;
+}
+
+.dropdown-footer {
+    border-top: 1px solid rgba(255, 255, 255, 0.05);
+    padding-top: 0.75rem;
+    margin-top: 0.25rem;
+}
+
+/* ── Project Status Badges ── */
+.project-badge.status-proposed {
+    background: var(--status-not-started-bg);
+    color: var(--status-not-started-text);
+}
+
+.project-badge.status-active {
+    background: var(--status-in-progress-bg);
+    color: var(--status-in-progress-text);
+}
+
+.project-badge.status-onhold {
+    background: rgba(245, 158, 11, 0.12);
+    color: #f59e0b;
+}
+
+.project-badge.status-completed {
+    background: var(--status-completed-bg);
+    color: var(--status-completed-text);
+}
+
+.project-badge.status-archived {
+    background: var(--status-blocked-bg);
+    color: var(--status-blocked-text);
+}

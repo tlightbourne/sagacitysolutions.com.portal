@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import type { WorkTask, WorkTaskStatus } from '../types';
 import { TaskCard } from './TaskCard';
+import "./KanbanBoard.css"
 
 interface KanbanBoardProps {
     viewMode: "all" | "tree" | "board";

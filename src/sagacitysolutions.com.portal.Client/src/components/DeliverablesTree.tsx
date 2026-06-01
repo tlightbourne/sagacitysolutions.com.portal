@@ -1,6 +1,7 @@
 import type { WorkTask, WorkTaskStatus, WorkTaskType } from "../types";
 import { PlusIcon, EditIcon } from "./Icons";
 import { getTaskColorTheme } from "../helpers/TaskColorHelper";
+import "./DeliverablesTree.css"
 
 interface DeliverablesTreeProps {
     tasks: WorkTask[];

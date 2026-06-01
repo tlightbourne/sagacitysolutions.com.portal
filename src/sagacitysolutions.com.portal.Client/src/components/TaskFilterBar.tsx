@@ -1,3 +1,5 @@
+import "./TaskFilterBar.css"
+
 interface TasksLayoutControlsProps {
     //Layout view controls
     viewMode: "all" | "tree" | "board";

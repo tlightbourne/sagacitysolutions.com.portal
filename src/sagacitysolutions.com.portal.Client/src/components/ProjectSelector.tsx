@@ -1,5 +1,6 @@
 import { useState, useEffect, useRef } from "react";
 import type { Project, ProjectStatus } from "../types";
+import "./ProjectSelector.css";
 import {
     FolderIcon,
     EyeIcon,
