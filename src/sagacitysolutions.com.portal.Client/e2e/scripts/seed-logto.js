@@ -12,22 +12,30 @@ const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
 async function run() {
   console.log("🚀 Starting Logto Management API seeding script...");
 
-  // 1. Determine container names
-  let dbContainer = "sagacity-postgres-test";
-  let logtoContainer = "sagacity-logto-test";
+  const LOGTO_ENDPOINT = process.env.LOGTO_ENDPOINT || "http://localhost:3001";
+  const dbHost = process.env.DB_HOST || null;
 
-  try {
-    const runningContainers = execSync("docker ps --format '{{.Names}}'", { encoding: "utf-8" });
-    if (!runningContainers.includes("sagacity-postgres-test")) {
-      dbContainer = "sagacitysolutionscomportal-postgres-1";
-      logtoContainer = "sagacitysolutionscomportal-logto-1";
+  // 1. Determine container names
+  let dbContainer = process.env.DB_CONTAINER || "sagacity-postgres-test";
+  let logtoContainer = process.env.LOGTO_CONTAINER || "sagacity-logto-test";
+
+  if (!process.env.DB_CONTAINER && !process.env.LOGTO_CONTAINER) {
+    try {
+      const runningContainers = execSync("docker ps --format '{{.Names}}'", { encoding: "utf-8" });
+      if (runningContainers.includes("sagacity-postgres")) {
+        dbContainer = "sagacity-postgres";
+        logtoContainer = "sagacity-logto";
+      } else if (!runningContainers.includes("sagacity-postgres-test")) {
+        dbContainer = "sagacitysolutionscomportal-postgres-1";
+        logtoContainer = "sagacitysolutionscomportal-logto-1";
+      }
+    } catch (e) {
+      console.warn("⚠️ Failed to list docker containers, defaulting to test container names.");
     }
-  } catch (e) {
-    console.warn("⚠️ Failed to list docker containers, defaulting to test container names.");
   }
 
-  console.log(`🐳 Using Database Container: ${dbContainer}`);
-  console.log(`🐳 Using Logto Container: ${logtoContainer}`);
+  console.log(`🐳 Using Database Target: ${dbHost ? dbHost : dbContainer}`);
+  console.log(`🐳 Using Logto Container/Endpoint: ${logtoContainer} (${LOGTO_ENDPOINT})`);
 
   const m2mClientId = "e2e-m2m";
   const m2mClientSecret = "SecureSecret123!";
@@ -126,13 +134,36 @@ async function run() {
 
     const tempSqlFile = path.join(__dirname, "bootstrap.sql");
     fs.writeFileSync(tempSqlFile, sqlContent, "utf-8");
-    console.log("✅ SQL bootstrap script generated locally.");
+    console.log("⏳ Waiting for Logto DB schema to be initialized by Logto service...");
+    let schemaReady = false;
+    for (let i = 0; i < 30; i++) {
+      try {
+        if (dbHost) {
+          execSync(`PGPASSWORD=logto psql -h ${dbHost} -U logto -d logto -c "SELECT 1 FROM applications LIMIT 1;"`, { stdio: "ignore" });
+        } else {
+          execSync(`docker exec -t ${dbContainer} psql -U logto -d logto -c "SELECT 1 FROM applications LIMIT 1;"`, { stdio: "ignore" });
+        }
+        schemaReady = true;
+        break;
+      } catch (e) {
+        await sleep(1500);
+      }
+    }
 
-    console.log(`📤 Copying bootstrap script into ${dbContainer}...`);
-    execSync(`docker cp "${tempSqlFile}" ${dbContainer}:/tmp/bootstrap.sql`);
-    
-    console.log("⚙️ Executing SQL bootstrap script inside DB container...");
-    execSync(`docker exec -t ${dbContainer} psql -U logto -d logto -f /tmp/bootstrap.sql`);
+    if (!schemaReady) {
+      throw new Error("Logto database schema was not initialized within timeout.");
+    }
+    console.log("✅ Logto DB schema is ready!");
+
+    if (dbHost) {
+      console.log(`⚙️ Executing SQL bootstrap script directly against ${dbHost} (logto DB)...`);
+      execSync(`PGPASSWORD=logto psql -h ${dbHost} -U logto -d logto -f "${tempSqlFile}"`, { encoding: "utf-8" });
+    } else {
+      console.log(`📤 Copying bootstrap script into ${dbContainer}...`);
+      execSync(`docker cp "${tempSqlFile}" ${dbContainer}:/tmp/bootstrap.sql`);
+      console.log("⚙️ Executing SQL bootstrap script inside DB container...");
+      execSync(`docker exec -t ${dbContainer} psql -U logto -d logto -f /tmp/bootstrap.sql`);
+    }
     console.log("✅ Database pre-bootstrap complete!");
 
     // Clean up local temp file
@@ -143,20 +174,24 @@ async function run() {
     }
 
     // 5. Restart Logto to reload DB secrets cache
-    console.log("🔄 Restarting Logto container to flush secrets cache...");
-    execSync(`docker restart ${logtoContainer}`, { encoding: "utf-8" });
-    console.log("✅ Restart command sent successfully.");
+    console.log(`🔄 Restarting Logto container (${logtoContainer}) to flush secrets cache...`);
+    try {
+      execSync(`docker restart ${logtoContainer}`, { encoding: "utf-8" });
+      console.log("✅ Restart command sent successfully.");
+    } catch (e) {
+      console.warn("⚠️ Failed to restart Logto container via Docker CLI:", e.message);
+    }
 
     // Wait a brief moment to ensure container shuts down/reboots
     console.log("⏳ Cooling down for container reboot...");
     await sleep(4000);
 
     // 6. Wait for Logto to reboot and become responsive
-    console.log("⏳ Waiting for Logto OIDC server to reboot and become responsive...");
+    console.log(`⏳ Waiting for Logto OIDC server (${LOGTO_ENDPOINT}) to reboot and become responsive...`);
     let logtoReady = false;
     for (let i = 0; i < 20; i++) {
       try {
-        const res = await fetch("http://localhost:3001/oidc/.well-known/openid-configuration");
+        const res = await fetch(`${LOGTO_ENDPOINT}/oidc/.well-known/openid-configuration`);
         if (res.ok) {
           logtoReady = true;
           break;
@@ -183,11 +218,15 @@ async function run() {
     const tempAppSqlFile = path.join(__dirname, "bootstrap_app.sql");
     fs.writeFileSync(tempAppSqlFile, appSqlContent, "utf-8");
     
-    console.log(`📤 Copying app bootstrap script into ${dbContainer}...`);
-    execSync(`docker cp "${tempAppSqlFile}" ${dbContainer}:/tmp/bootstrap_app.sql`);
-    
-    console.log("⚙️ Executing app bootstrap script inside DB container...");
-    execSync(`docker exec -t ${dbContainer} psql -U logto -d sagacitysolutions -f /tmp/bootstrap_app.sql`);
+    if (dbHost) {
+      console.log(`⚙️ Executing app bootstrap script directly against ${dbHost} (sagacitysolutions DB)...`);
+      execSync(`PGPASSWORD=logto psql -h ${dbHost} -U logto -d sagacitysolutions -f "${tempAppSqlFile}"`, { encoding: "utf-8" });
+    } else {
+      console.log(`📤 Copying app bootstrap script into ${dbContainer}...`);
+      execSync(`docker cp "${tempAppSqlFile}" ${dbContainer}:/tmp/bootstrap_app.sql`);
+      console.log("⚙️ Executing app bootstrap script inside DB container...");
+      execSync(`docker exec -t ${dbContainer} psql -U logto -d sagacitysolutions -f /tmp/bootstrap_app.sql`);
+    }
     
     try {
       fs.unlinkSync(tempAppSqlFile);
@@ -200,9 +239,6 @@ async function run() {
     console.error("❌ Pre-bootstrap configuration failed:", error.message);
     process.exit(1);
   }
-
-  // Configuration settings
-  const LOGTO_ENDPOINT = "http://localhost:3001";
 
   try {
     // 7. Fetch Management API Access Token

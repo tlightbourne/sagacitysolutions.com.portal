@@ -9,7 +9,8 @@ const app = express();
 const PORT = process.env.PORT ?? 5000;
 const BASE_URL = process.env.BASE_URL ?? `http://localhost:${PORT}`;
 const CLIENT_ORIGIN = process.env.CLIENT_ORIGIN ?? "http://localhost:5173";
-const PORTAL_API = process.env.PORTAL_API ?? "http://localhost:5092";
+const PORTAL_API_URL = process.env.PORTAL_API_URL ?? process.env.PORTAL_API ?? "http://localhost:5092";
+const PORTAL_API_RESOURCE = process.env.PORTAL_API_RESOURCE ?? "http://localhost:5092";
 
 // ── Middleware ────────────────────────────────────────────────────────────────
 
@@ -47,7 +48,7 @@ app.all("/api/*", async (req, res) => {
 
   try {
     // Get the token to access the downstream service
-    const token = await client.getAccessToken(PORTAL_API);
+    const token = await client.getAccessToken(PORTAL_API_RESOURCE);
 
     const headers = {
       Authorization: `Bearer ${token}`,
@@ -60,7 +61,7 @@ app.all("/api/*", async (req, res) => {
     }
 
     // Create a new request to the downstream service
-    const downstreamRequest = new Request(`${PORTAL_API}${req.path}`, {
+    const downstreamRequest = new Request(`${PORTAL_API_URL}${req.path}`, {
       method: req.method,
       headers,
       body: req.method === "GET" || req.method === "HEAD" ? undefined : JSON.stringify(req.body),
@@ -144,7 +145,7 @@ app.get("/me", async (req, res) => {
   }
 
   const claims = await client.getIdTokenClaims();
-  const accessTokenClaims = await client.getAccessTokenClaims(PORTAL_API);
+  const accessTokenClaims = await client.getAccessTokenClaims(PORTAL_API_RESOURCE);
 
   const username = claims.username || claims.name || claims.sub;
   let organizations = {};

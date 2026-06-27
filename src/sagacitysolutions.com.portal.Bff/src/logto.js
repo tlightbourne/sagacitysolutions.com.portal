@@ -36,7 +36,7 @@ export function getLogtoClient(session, res) {
       endpoint: process.env.LOGTO_ENDPOINT,
       appId: process.env.LOGTO_APP_ID,
       appSecret: process.env.LOGTO_APP_SECRET,
-      resources: [process.env.PORTAL_API],
+      resources: [process.env.PORTAL_API_RESOURCE || process.env.PORTAL_API || "http://localhost:5092"],
       scopes: [
         UserScope.Organizations,
         UserScope.OrganizationRoles,

@@ -1,0 +1,13 @@
+FROM node:20-alpine
+
+# Install postgresql-client and docker-cli for database execution and container orchestration
+RUN apk add --no-cache postgresql-client docker-cli
+
+WORKDIR /app
+
+COPY package*.json ./
+RUN npm install
+
+COPY . .
+
+CMD ["npm", "run", "seed:logto"]
