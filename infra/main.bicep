@@ -2,7 +2,7 @@
 targetScope = 'subscription'
 
 @description('Location for all resources.')
-param location string = 'eastus'
+param location string = 'eastus2'
 
 @description('Environment name prefix.')
 param environmentName string = 'prod'

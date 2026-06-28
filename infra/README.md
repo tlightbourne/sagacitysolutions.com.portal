@@ -27,7 +27,7 @@ Run the deployment command pointing to your subcription:
 
 ```bash
 az deployment sub create \
-  --location eastus \
+  --location eastus2 \
   --template-file infra/main.bicep \
   --parameters adminUsername='portaladmin' adminPassword='YourSecurePassword123!'
 ```

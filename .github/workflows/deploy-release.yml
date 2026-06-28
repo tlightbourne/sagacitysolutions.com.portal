@@ -76,7 +76,7 @@ jobs:
         with:
           subscriptionId: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
           scope: subscription
-          region: eastus
+          region: eastus2
           deploymentName: sagacity-portal-deploy
           template: ./infra/main.bicep
           parameters: ./infra/main.parameters.json
