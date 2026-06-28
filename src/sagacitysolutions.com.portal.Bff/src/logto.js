@@ -52,7 +52,14 @@ export function getLogtoClient(session, res) {
       storage: makeStorage(session),
       navigate: (url) => {
         if (res && !res.headersSent) {
-          res.redirect(url);
+          if (session && typeof session.save === "function") {
+            session.save((err) => {
+              if (err) console.error("Session save error before redirect:", err);
+              res.redirect(url);
+            });
+          } else {
+            res.redirect(url);
+          }
         }
       },
     }

@@ -15,7 +15,7 @@ const PORTAL_API_RESOURCE = process.env.PORTAL_API_RESOURCE ?? "http://localhost
 const isSecure = process.env.NODE_ENV === "production" || BASE_URL.startsWith("https://");
 
 if (isSecure) {
-  app.set("trust proxy", 1);
+  app.set("trust proxy", true);
 }
 
 // ── Middleware ────────────────────────────────────────────────────────────────
@@ -37,7 +37,7 @@ app.use(
     saveUninitialized: false,
     cookie: {
       httpOnly: true,
-      sameSite: isSecure ? "none" : "lax",
+      sameSite: "lax",
       secure: isSecure,
       maxAge: 14 * 24 * 60 * 60 * 1000,
     },
@@ -118,10 +118,17 @@ app.get("/auth/callback", async (req, res) => {
 
   try {
     await client.handleSignInCallback(callbackUrl);
-    res.redirect(CLIENT_ORIGIN);
+    if (req.session && typeof req.session.save === "function") {
+      req.session.save((err) => {
+        if (err) console.error("Session save error after callback:", err);
+        res.redirect(CLIENT_ORIGIN);
+      });
+    } else {
+      res.redirect(CLIENT_ORIGIN);
+    }
   } catch (err) {
     console.error("Callback error:", err);
-    res.status(500).json({ error: "Authentication callback failed" });
+    res.status(500).json({ error: "Authentication callback failed", details: err.message });
   }
 });
 
