@@ -82,6 +82,13 @@ resource logtoApp 'Microsoft.App/containerApps@2023-05-01' = {
       ingress: {
         external: true
         targetPort: 3001
+        customDomains: [
+          {
+            name: 'auth.sagacitysolutions.ai'
+            certificateId: '/subscriptions/2eb5ef49-7b81-4bdd-99f1-ad2e41b602fe/resourceGroups/rg-sagacity-prod/providers/Microsoft.App/managedEnvironments/cae-sagacity-prod/managedCertificates/mc-cae-sagacity-p-auth-sagacitysol-5145'
+            bindingType: 'SniEnabled'
+          }
+        ]
       }
     }
     template: {
@@ -131,6 +138,13 @@ resource logtoAdminApp 'Microsoft.App/containerApps@2023-05-01' = {
       ingress: {
         external: true
         targetPort: 3002
+        customDomains: [
+          {
+            name: 'admin-auth.sagacitysolutions.ai'
+            certificateId: '/subscriptions/2eb5ef49-7b81-4bdd-99f1-ad2e41b602fe/resourceGroups/rg-sagacity-prod/providers/Microsoft.App/managedEnvironments/cae-sagacity-prod/managedCertificates/mc-cae-sagacity-p-admin-auth-sagac-8526'
+            bindingType: 'SniEnabled'
+          }
+        ]
       }
     }
     template: {
@@ -184,6 +198,13 @@ resource webApiApp 'Microsoft.App/containerApps@2023-05-01' = {
       ingress: {
         external: true
         targetPort: 5092
+        customDomains: [
+          {
+            name: 'api.sagacitysolutions.ai'
+            certificateId: '/subscriptions/2eb5ef49-7b81-4bdd-99f1-ad2e41b602fe/resourceGroups/rg-sagacity-prod/providers/Microsoft.App/managedEnvironments/cae-sagacity-prod/managedCertificates/mc-cae-sagacity-p-api-sagacitysolu-4177'
+            bindingType: 'SniEnabled'
+          }
+        ]
       }
     }
     template: {
@@ -225,6 +246,13 @@ resource bffApp 'Microsoft.App/containerApps@2023-05-01' = {
       ingress: {
         external: true
         targetPort: 5000
+        customDomains: [
+          {
+            name: 'bff.sagacitysolutions.ai'
+            certificateId: '/subscriptions/2eb5ef49-7b81-4bdd-99f1-ad2e41b602fe/resourceGroups/rg-sagacity-prod/providers/Microsoft.App/managedEnvironments/cae-sagacity-prod/managedCertificates/mc-cae-sagacity-p-bff-sagacitysolu-5670'
+            bindingType: 'SniEnabled'
+          }
+        ]
       }
     }
     template: {
