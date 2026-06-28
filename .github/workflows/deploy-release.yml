@@ -71,14 +71,6 @@ jobs:
           }
           EOF
 
-      - name: Clean Up Legacy Resource Group (If location mismatched)
-        run: |
-          EXISTING_LOCATION=$(az group show --name rg-sagacity-prod --query location -o tsv 2>/dev/null || true)
-          if [ "$EXISTING_LOCATION" == "westus2" ]; then
-            echo "Deleting legacy resource group rg-sagacity-prod in westus2..."
-            az group delete --name rg-sagacity-prod --yes
-          fi
-
       - name: Deploy Azure Bicep Infrastructure
         uses: azure/arm-deploy@v2
         with:
