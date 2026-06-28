@@ -112,7 +112,7 @@ resource logtoApp 'Microsoft.App/containerApps@2023-05-01' = {
             }
             {
               name: 'DB_URL'
-              value: 'postgresql://${adminUsername}:${adminPassword}@${postgresServer.properties.fullyQualifiedDomainName}:5432/logto?sslmode=require'
+              value: 'postgresql://${adminUsername}:${replace(replace(adminPassword, '&', '%26'), '=', '%3D')}@${postgresServer.properties.fullyQualifiedDomainName}:5432/logto?sslmode=require'
             }
           ]
         }
@@ -161,7 +161,7 @@ resource logtoAdminApp 'Microsoft.App/containerApps@2023-05-01' = {
             }
             {
               name: 'DB_URL'
-              value: 'postgresql://${adminUsername}:${adminPassword}@${postgresServer.properties.fullyQualifiedDomainName}:5432/logto?sslmode=require'
+              value: 'postgresql://${adminUsername}:${replace(replace(adminPassword, '&', '%26'), '=', '%3D')}@${postgresServer.properties.fullyQualifiedDomainName}:5432/logto?sslmode=require'
             }
           ]
         }

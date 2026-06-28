@@ -109,11 +109,13 @@ jobs:
           POSTGRES_HOST="psql-sagacity-prod.postgres.database.azure.com"
           POSTGRES_PASS="${{ secrets.AZURE_POSTGRES_PASSWORD }}"
           
+          ENCODED_PASS=$(node -e 'console.log(encodeURIComponent(process.argv[1]))' "${POSTGRES_PASS}")
+          
           WEBAPI_CONN="Host=${POSTGRES_HOST};Database=sagacitysolutions;Username=portaladmin;Password=${POSTGRES_PASS};SSL Mode=Require;"
           echo "webapi_conn=${WEBAPI_CONN}" >> $GITHUB_OUTPUT
           echo "::add-mask::${WEBAPI_CONN}"
           
-          LOGTO_DB_URL="postgresql://portaladmin:${POSTGRES_PASS}@${POSTGRES_HOST}:5432/logto?sslmode=require"
+          LOGTO_DB_URL="postgresql://portaladmin:${ENCODED_PASS}@${POSTGRES_HOST}:5432/logto?sslmode=require"
           echo "logto_db_url=${LOGTO_DB_URL}" >> $GITHUB_OUTPUT
           echo "::add-mask::${LOGTO_DB_URL}"
           
@@ -130,8 +132,7 @@ jobs:
 
       - name: Initialize Logto Core Database Schema
         run: |
-          docker run --rm -e DB_URL="${{ steps.prep-env.outputs.logto_db_url }}" svhd/logto:1.40.1 npx @logto/cli db seed --git || true
-          docker run --rm -e DB_URL="${{ steps.prep-env.outputs.logto_db_url }}" svhd/logto:1.40.1 npx @logto/cli db alteration deploy 1.40.1 || true
+          docker run --rm --entrypoint sh -e DB_URL="${{ steps.prep-env.outputs.logto_db_url }}" svhd/logto:1.40.1 -c "cd /etc/logto && (npx @logto/cli db seed || npm run db seed || true)"
 
       - name: Run Production Logto Initialization
         working-directory: ./src/sagacitysolutions.com.portal.Client
