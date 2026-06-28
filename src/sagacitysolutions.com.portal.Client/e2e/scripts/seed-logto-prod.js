@@ -84,8 +84,10 @@ async function runProductionSeeding() {
 
       if (tableReady) {
         console.log("⚙️ Applying production Logto JWT claim scripts via PostgreSQL connection...");
+        const BFF_ORIGIN = process.env.BFF_ORIGIN || "https://bff.sagacitysolutions.ai";
         const bffMeta = JSON.stringify({
           redirectUris: [
+            `${BFF_ORIGIN}/auth/callback`,
             "https://app-bff.politebay-f3ad130c.centralus.azurecontainerapps.io/auth/callback",
             "http://localhost:5000/auth/callback"
           ],

@@ -117,10 +117,10 @@ jobs:
           echo "::add-mask::${BFF_SECRET}"
           echo "::add-mask::${SESSION_SEC}"
           
-          LOGTO_FQDN=$(az containerapp show --name app-logto --resource-group rg-sagacity-prod --query properties.configuration.ingress.fqdn -o tsv || echo "app-logto.politebay-f3ad130c.centralus.azurecontainerapps.io")
-          WEBAPI_FQDN=$(az containerapp show --name app-webapi --resource-group rg-sagacity-prod --query properties.configuration.ingress.fqdn -o tsv || echo "app-webapi.politebay-f3ad130c.centralus.azurecontainerapps.io")
-          BFF_FQDN=$(az containerapp show --name app-bff --resource-group rg-sagacity-prod --query properties.configuration.ingress.fqdn -o tsv || echo "app-bff.politebay-f3ad130c.centralus.azurecontainerapps.io")
-          SWA_HOST=$(az staticwebapp show --name swa-sagacity-prod --resource-group rg-sagacity-prod --query defaultHostname -o tsv || echo "swa-sagacity-prod.azurestaticapps.net")
+          LOGTO_FQDN="auth.sagacitysolutions.ai"
+          WEBAPI_FQDN="api.sagacitysolutions.ai"
+          BFF_FQDN="bff.sagacitysolutions.ai"
+          SWA_HOST="portal.sagacitysolutions.ai"
 
           echo "logto_fqdn=${LOGTO_FQDN}" >> $GITHUB_OUTPUT
           echo "webapi_fqdn=${WEBAPI_FQDN}" >> $GITHUB_OUTPUT
@@ -172,6 +172,7 @@ jobs:
           LOGTO_ENDPOINT: "https://${{ steps.prep-env.outputs.logto_fqdn }}"
           PORTAL_API_RESOURCE: "https://${{ steps.prep-env.outputs.webapi_fqdn }}"
           CLIENT_ORIGIN: "https://${{ steps.prep-env.outputs.swa_host }}"
+          BFF_ORIGIN: "https://${{ steps.prep-env.outputs.bff_fqdn }}"
         run: |
           npm ci
           npm run seed:logto:prod || echo "Production Logto seeding completed or skipped safely."
