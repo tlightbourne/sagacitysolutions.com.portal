@@ -104,11 +104,11 @@ resource logtoApp 'Microsoft.App/containerApps@2023-05-01' = {
             }
             {
               name: 'ENDPOINT'
-              value: 'https://auth.sagacitysolutions.ai'
+              value: 'https://${logtoApp.properties.configuration.ingress.fqdn}'
             }
             {
               name: 'ADMIN_ENDPOINT'
-              value: 'https://admin-auth.sagacitysolutions.ai'
+              value: 'https://${logtoAdminApp.properties.configuration.ingress.fqdn}'
             }
             {
               name: 'DB_URL'
@@ -153,11 +153,11 @@ resource logtoAdminApp 'Microsoft.App/containerApps@2023-05-01' = {
             }
             {
               name: 'ENDPOINT'
-              value: 'https://auth.sagacitysolutions.ai'
+              value: 'https://${logtoApp.properties.configuration.ingress.fqdn}'
             }
             {
               name: 'ADMIN_ENDPOINT'
-              value: 'https://admin-auth.sagacitysolutions.ai'
+              value: 'https://${logtoAdminApp.properties.configuration.ingress.fqdn}'
             }
             {
               name: 'DB_URL'
@@ -231,11 +231,23 @@ resource bffApp 'Microsoft.App/containerApps@2023-05-01' = {
             }
             {
               name: 'CLIENT_ORIGIN'
-              value: 'https://portal.sagacitysolutions.ai'
+              value: 'https://${staticWebApp.properties.defaultHostname}'
             }
             {
               name: 'LOGTO_ENDPOINT'
-              value: 'https://auth.sagacitysolutions.ai'
+              value: 'https://${logtoApp.properties.configuration.ingress.fqdn}'
+            }
+            {
+              name: 'BASE_URL'
+              value: 'https://${bffApp.properties.configuration.ingress.fqdn}'
+            }
+            {
+              name: 'PORTAL_API_URL'
+              value: 'https://${webApiApp.properties.configuration.ingress.fqdn}'
+            }
+            {
+              name: 'PORTAL_API_RESOURCE'
+              value: 'https://api.sagacitysolutions.ai'
             }
           ]
         }

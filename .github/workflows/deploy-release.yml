@@ -98,10 +98,20 @@ jobs:
 
       - name: Update BFF Azure Container App
         run: |
+          LOGTO_FQDN=$(az containerapp show --name app-logto --resource-group rg-sagacity-prod --query properties.configuration.ingress.fqdn -o tsv)
+          WEBAPI_FQDN=$(az containerapp show --name app-webapi --resource-group rg-sagacity-prod --query properties.configuration.ingress.fqdn -o tsv)
+          BFF_FQDN=$(az containerapp show --name app-bff --resource-group rg-sagacity-prod --query properties.configuration.ingress.fqdn -o tsv)
+          SWA_HOST=$(az staticwebapp show --name swa-sagacity-prod --resource-group rg-sagacity-prod --query defaultHostname -o tsv)
+
           az containerapp update \
             --name app-bff \
             --resource-group rg-sagacity-prod \
-            --image ghcr.io/${{ github.repository_owner }}/sagacity-bff:${{ github.ref_name }}
+            --image ghcr.io/${{ github.repository_owner }}/sagacity-bff:${{ github.ref_name }} \
+            --set-env-vars \
+              LOGTO_ENDPOINT="https://${LOGTO_FQDN}" \
+              PORTAL_API_URL="https://${WEBAPI_FQDN}" \
+              BASE_URL="https://${BFF_FQDN}" \
+              CLIENT_ORIGIN="https://${SWA_HOST}"
 
       - name: Prepare Dynamic Connection Strings & M2M Credentials
         id: prep-env
