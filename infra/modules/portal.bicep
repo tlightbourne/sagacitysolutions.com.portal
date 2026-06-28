@@ -93,11 +93,6 @@ resource logtoApp 'Microsoft.App/containerApps@2023-05-01' = {
         {
           name: 'logto'
           image: 'svhd/logto:1.40.1'
-          command: [
-            'sh'
-            '-c'
-            'npm run db seed -- --git || npx @logto/cli db seed --git || npm run alteration deploy -- 1.40.1 || true; npm start'
-          ]
           env: [
             {
               name: 'TRUST_PROXY_HEADER'
@@ -147,11 +142,6 @@ resource logtoAdminApp 'Microsoft.App/containerApps@2023-05-01' = {
         {
           name: 'logto-admin'
           image: 'svhd/logto:1.40.1'
-          command: [
-            'sh'
-            '-c'
-            'npm start'
-          ]
           env: [
             {
               name: 'TRUST_PROXY_HEADER'
