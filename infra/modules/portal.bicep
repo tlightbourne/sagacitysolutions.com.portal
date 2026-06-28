@@ -10,7 +10,7 @@ var caeName = 'cae-sagacity-${environmentName}'
 var swaName = 'swa-sagacity-${environmentName}'
 
 // 1. Azure Database for PostgreSQL (Flexible Server - Free 12 Month Eligible B1ms)
-resource postgresServer 'Microsoft.DBforPostgreSQL/flexibleServers@2023-03-01-preview' = {
+resource postgresServer 'Microsoft.DBforPostgreSQL/flexibleServers@2023-12-01-preview' = {
   name: postgresServerName
   location: location
   sku: {
@@ -24,12 +24,11 @@ resource postgresServer 'Microsoft.DBforPostgreSQL/flexibleServers@2023-03-01-pr
     storage: {
       storageSizeGB: 32
     }
-    availabilityZone: '1'
   }
 }
 
 // Firewall rule allowing Azure Services to connect to Postgres
-resource postgresFirewall 'Microsoft.DBforPostgreSQL/flexibleServers/firewallRules@2023-03-01-preview' = {
+resource postgresFirewall 'Microsoft.DBforPostgreSQL/flexibleServers/firewallRules@2023-12-01-preview' = {
   parent: postgresServer
   name: 'AllowAllAzureServices'
   properties: {
@@ -39,12 +38,12 @@ resource postgresFirewall 'Microsoft.DBforPostgreSQL/flexibleServers/firewallRul
 }
 
 // Database creation
-resource sagacityDb 'Microsoft.DBforPostgreSQL/flexibleServers/databases@2023-03-01-preview' = {
+resource sagacityDb 'Microsoft.DBforPostgreSQL/flexibleServers/databases@2023-12-01-preview' = {
   parent: postgresServer
   name: 'sagacitysolutions'
 }
 
-resource logtoDb 'Microsoft.DBforPostgreSQL/flexibleServers/databases@2023-03-01-preview' = {
+resource logtoDb 'Microsoft.DBforPostgreSQL/flexibleServers/databases@2023-12-01-preview' = {
   parent: postgresServer
   name: 'logto'
 }

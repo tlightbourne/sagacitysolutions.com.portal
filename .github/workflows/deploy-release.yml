@@ -63,6 +63,14 @@ jobs:
           template: ./infra/main.bicep
           parameters: adminUsername='sagacityadmin' adminPassword='${{ secrets.AZURE_POSTGRES_PASSWORD }}'
 
+      - name: Show Azure Deployment Failure Details
+        if: failure()
+        run: |
+          echo "=== Azure Subscription Deployment Failures ==="
+          az deployment operation sub list --name main --query "[?properties.provisioningState=='Failed'].properties.statusMessage" -o json || true
+          echo "=== Azure Resource Group Deployment Failures ==="
+          az deployment group operation list --resource-group rg-sagacity-prod --name portalResourcesDeployment --query "[?properties.provisioningState=='Failed'].properties.statusMessage" -o json || true
+
       - name: Update WebApi Azure Container App
         uses: azure/container-apps-deploy-action@v1
         with:
