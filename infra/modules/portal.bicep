@@ -104,11 +104,11 @@ resource logtoApp 'Microsoft.App/containerApps@2023-05-01' = {
             }
             {
               name: 'ENDPOINT'
-              value: 'https://${logtoApp.properties.configuration.ingress.fqdn}'
+              value: 'https://app-logto.${managedEnv.properties.defaultDomain}'
             }
             {
               name: 'ADMIN_ENDPOINT'
-              value: 'https://${logtoAdminApp.properties.configuration.ingress.fqdn}'
+              value: 'https://app-logto-admin.${managedEnv.properties.defaultDomain}'
             }
             {
               name: 'DB_URL'
@@ -153,11 +153,11 @@ resource logtoAdminApp 'Microsoft.App/containerApps@2023-05-01' = {
             }
             {
               name: 'ENDPOINT'
-              value: 'https://${logtoApp.properties.configuration.ingress.fqdn}'
+              value: 'https://app-logto.${managedEnv.properties.defaultDomain}'
             }
             {
               name: 'ADMIN_ENDPOINT'
-              value: 'https://${logtoAdminApp.properties.configuration.ingress.fqdn}'
+              value: 'https://app-logto-admin.${managedEnv.properties.defaultDomain}'
             }
             {
               name: 'DB_URL'
@@ -235,15 +235,15 @@ resource bffApp 'Microsoft.App/containerApps@2023-05-01' = {
             }
             {
               name: 'LOGTO_ENDPOINT'
-              value: 'https://${logtoApp.properties.configuration.ingress.fqdn}'
+              value: 'https://app-logto.${managedEnv.properties.defaultDomain}'
             }
             {
               name: 'BASE_URL'
-              value: 'https://${bffApp.properties.configuration.ingress.fqdn}'
+              value: 'https://app-bff.${managedEnv.properties.defaultDomain}'
             }
             {
               name: 'PORTAL_API_URL'
-              value: 'https://${webApiApp.properties.configuration.ingress.fqdn}'
+              value: 'https://app-webapi.${managedEnv.properties.defaultDomain}'
             }
             {
               name: 'PORTAL_API_RESOURCE'
