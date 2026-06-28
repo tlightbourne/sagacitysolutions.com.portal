@@ -18,6 +18,7 @@ async function runProductionSeeding() {
 
   const m2mClientId = process.env.LOGTO_M2M_CLIENT_ID;
   const m2mClientSecret = process.env.LOGTO_M2M_CLIENT_SECRET;
+  const bffClientSecret = process.env.LOGTO_BFF_CLIENT_SECRET || "7sAbhzKUoi42MtxZgEgIdU3LbQwTES1w";
 
   if (!m2mClientId || !m2mClientSecret) {
     throw new Error("Missing required LOGTO_M2M_CLIENT_ID or LOGTO_M2M_CLIENT_SECRET environment variables. Ensure they are configured as GitHub Secrets.");
@@ -83,9 +84,22 @@ async function runProductionSeeding() {
 
       if (tableReady) {
         console.log("⚙️ Applying production Logto JWT claim scripts via PostgreSQL connection...");
+        const bffMeta = JSON.stringify({
+          redirectUris: [
+            "https://app-bff.politebay-f3ad130c.centralus.azurecontainerapps.io/auth/callback",
+            "http://localhost:5000/auth/callback"
+          ],
+          postLogoutRedirectUris: [
+            CLIENT_ORIGIN,
+            "http://localhost:5173"
+          ]
+        });
+
         const sqlContent = [
           `INSERT INTO applications (tenant_id, id, name, type, secret, oidc_client_metadata, custom_data) VALUES ('default', '${m2mClientId}', 'Production M2M Client', 'MachineToMachine', '${m2mClientSecret}', '{"redirectUris": [], "postLogoutRedirectUris": []}', '{}') ON CONFLICT DO NOTHING;`,
           `INSERT INTO application_secrets (tenant_id, application_id, name, value) VALUES ('default', '${m2mClientId}', 'Default secret', '${m2mClientSecret}') ON CONFLICT DO NOTHING;`,
+          `INSERT INTO applications (tenant_id, id, name, type, secret, oidc_client_metadata, custom_data) VALUES ('default', 'moxwjx3you2zdb4dglttg', 'BFF Client', 'Traditional', '${bffClientSecret}', '${bffMeta}', '{}') ON CONFLICT (id) DO UPDATE SET oidc_client_metadata = '${bffMeta}';`,
+          `INSERT INTO application_secrets (tenant_id, application_id, name, value) VALUES ('default', 'moxwjx3you2zdb4dglttg', 'Default secret', '${bffClientSecret}') ON CONFLICT DO NOTHING;`,
           `INSERT INTO applications_roles (tenant_id, id, application_id, role_id) VALUES ('default', 'prod-m2m-link', '${m2mClientId}', 'admin-role') ON CONFLICT DO NOTHING;`,
           `INSERT INTO application_user_consent_resource_scopes (tenant_id, application_id, scope_id) VALUES ('default', '${m2mClientId}', 'management-api-all') ON CONFLICT DO NOTHING;`,
           `UPDATE logto_configs SET value = '{"enabledExtendedClaims": ["roles", "organizations", "organization_roles", "organization_data", "custom_data"]}' WHERE key = 'idToken' AND tenant_id = 'default';`,

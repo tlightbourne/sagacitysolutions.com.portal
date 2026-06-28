@@ -107,11 +107,14 @@ jobs:
           
           M2M_ID="prod-m2m-client"
           M2M_SECRET=$(echo -n "${POSTGRES_PASS}-logto-m2m-key" | sha256sum | awk '{print $1}')
+          BFF_SECRET=$(echo -n "${POSTGRES_PASS}-logto-bff-key" | sha256sum | awk '{print $1}')
           SESSION_SEC=$(echo -n "${POSTGRES_PASS}-session-secret" | sha256sum | awk '{print $1}')
           echo "m2m_id=${M2M_ID}" >> $GITHUB_OUTPUT
           echo "m2m_secret=${M2M_SECRET}" >> $GITHUB_OUTPUT
+          echo "bff_secret=${BFF_SECRET}" >> $GITHUB_OUTPUT
           echo "session_sec=${SESSION_SEC}" >> $GITHUB_OUTPUT
           echo "::add-mask::${M2M_SECRET}"
+          echo "::add-mask::${BFF_SECRET}"
           echo "::add-mask::${SESSION_SEC}"
           
           LOGTO_FQDN=$(az containerapp show --name app-logto --resource-group rg-sagacity-prod --query properties.configuration.ingress.fqdn -o tsv || echo "app-logto.politebay-f3ad130c.centralus.azurecontainerapps.io")
@@ -146,8 +149,8 @@ jobs:
               PORTAL_API_RESOURCE="https://${{ steps.prep-env.outputs.webapi_fqdn }}" \
               BASE_URL="https://${{ steps.prep-env.outputs.bff_fqdn }}" \
               CLIENT_ORIGIN="https://${{ steps.prep-env.outputs.swa_host }}" \
-              LOGTO_APP_ID="${{ steps.prep-env.outputs.m2m_id }}" \
-              LOGTO_APP_SECRET="${{ steps.prep-env.outputs.m2m_secret }}" \
+              LOGTO_APP_ID="moxwjx3you2zdb4dglttg" \
+              LOGTO_APP_SECRET="${{ steps.prep-env.outputs.bff_secret }}" \
               SESSION_SECRET="${{ steps.prep-env.outputs.session_sec }}"
 
       - name: Run WebApi Database Migrations
@@ -164,6 +167,7 @@ jobs:
         env:
           LOGTO_M2M_CLIENT_ID: ${{ steps.prep-env.outputs.m2m_id }}
           LOGTO_M2M_CLIENT_SECRET: ${{ steps.prep-env.outputs.m2m_secret }}
+          LOGTO_BFF_CLIENT_SECRET: ${{ steps.prep-env.outputs.bff_secret }}
           DB_URL: ${{ steps.prep-env.outputs.logto_db_url }}
           LOGTO_ENDPOINT: "https://${{ steps.prep-env.outputs.logto_fqdn }}"
           PORTAL_API_RESOURCE: "https://${{ steps.prep-env.outputs.webapi_fqdn }}"
