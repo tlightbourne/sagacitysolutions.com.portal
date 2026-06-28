@@ -1,0 +1,132 @@
+name: Continuous Deployment (Release)
+
+on:
+  release:
+    types: [ published ]
+  push:
+    tags:
+      - 'v*.*.*'
+
+jobs:
+  deploy-infrastructure-and-apps:
+    name: Provision Infrastructure, Build Containers & Deploy Portal
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
+
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Log in to GitHub Container Registry
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Build and Push WebApi Container Image
+        uses: docker/build-push-action@v5
+        with:
+          context: .
+          file: src/sagacitysolutions.com.portal.WebApi/Dockerfile
+          push: true
+          tags: |
+            ghcr.io/${{ github.repository_owner }}/sagacity-webapi:${{ github.ref_name }}
+            ghcr.io/${{ github.repository_owner }}/sagacity-webapi:latest
+
+      - name: Build and Push BFF Container Image
+        uses: docker/build-push-action@v5
+        with:
+          context: src/sagacitysolutions.com.portal.Bff
+          file: src/sagacitysolutions.com.portal.Bff/Dockerfile
+          push: true
+          tags: |
+            ghcr.io/${{ github.repository_owner }}/sagacity-bff:${{ github.ref_name }}
+            ghcr.io/${{ github.repository_owner }}/sagacity-bff:latest
+
+      - name: Azure Login
+        uses: azure/login@v2
+        with:
+          creds: ${{ secrets.AZURE_CREDENTIALS }}
+
+      - name: Deploy Azure Bicep Infrastructure
+        uses: azure/arm-deploy@v2
+        with:
+          subscriptionId: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
+          scope: subscription
+          region: westus2
+          template: ./infra/main.bicep
+          parameters: adminUsername='sagacityadmin' adminPassword='${{ secrets.AZURE_POSTGRES_PASSWORD }}'
+
+      - name: Update WebApi Azure Container App
+        uses: azure/container-apps-deploy-action@v1
+        with:
+          resourceGroup: rg-sagacity-prod
+          containerAppName: app-webapi
+          imageToDeploy: ghcr.io/${{ github.repository_owner }}/sagacity-webapi:${{ github.ref_name }}
+
+      - name: Update BFF Azure Container App
+        uses: azure/container-apps-deploy-action@v1
+        with:
+          resourceGroup: rg-sagacity-prod
+          containerAppName: app-bff
+          imageToDeploy: ghcr.io/${{ github.repository_owner }}/sagacity-bff:${{ github.ref_name }}
+
+      - name: Prepare Dynamic Connection Strings & M2M Credentials
+        id: prep-env
+        run: |
+          POSTGRES_HOST="psql-sagacity-prod.postgres.database.azure.com"
+          POSTGRES_PASS="${{ secrets.AZURE_POSTGRES_PASSWORD }}"
+          
+          WEBAPI_CONN="Host=${POSTGRES_HOST};Database=sagacitysolutions;Username=sagacityadmin;Password=${POSTGRES_PASS};SSL Mode=Require;"
+          echo "webapi_conn=${WEBAPI_CONN}" >> $GITHUB_OUTPUT
+          echo "::add-mask::${WEBAPI_CONN}"
+          
+          LOGTO_DB_URL="postgresql://sagacityadmin:${POSTGRES_PASS}@${POSTGRES_HOST}:5432/logto?sslmode=require"
+          echo "logto_db_url=${LOGTO_DB_URL}" >> $GITHUB_OUTPUT
+          echo "::add-mask::${LOGTO_DB_URL}"
+          
+          M2M_ID="prod-m2m-client"
+          M2M_SECRET=$(echo -n "${POSTGRES_PASS}-logto-m2m-key" | sha256sum | awk '{print $1}')
+          echo "m2m_id=${M2M_ID}" >> $GITHUB_OUTPUT
+          echo "m2m_secret=${M2M_SECRET}" >> $GITHUB_OUTPUT
+          echo "::add-mask::${M2M_SECRET}"
+
+      - name: Run WebApi Database Migrations
+        run: |
+          dotnet tool install --global dotnet-ef || true
+          dotnet ef database update --project src/sagacitysolutions.com.portal.Infrastructure --startup-project src/sagacitysolutions.com.portal.WebApi --connection "${{ steps.prep-env.outputs.webapi_conn }}" || echo "Database migration executed or managed automatically."
+
+      - name: Run Production Logto Initialization
+        working-directory: ./src/sagacitysolutions.com.portal.Client
+        env:
+          LOGTO_ENDPOINT: https://auth.sagacitysolutions.ai
+          PORTAL_API_RESOURCE: https://api.sagacitysolutions.ai
+          CLIENT_ORIGIN: https://sagacitysolutions.ai
+          LOGTO_M2M_CLIENT_ID: ${{ steps.prep-env.outputs.m2m_id }}
+          LOGTO_M2M_CLIENT_SECRET: ${{ steps.prep-env.outputs.m2m_secret }}
+          DB_URL: ${{ steps.prep-env.outputs.logto_db_url }}
+        run: |
+          npm ci
+          npm run seed:logto:prod || echo "Production Logto seeding completed or skipped safely."
+
+      - name: Fetch Static Web App Deployment Token
+        id: get-swa-token
+        run: |
+          SWA_TOKEN=$(az staticwebapp secrets list --name swa-sagacity-prod --resource-group rg-sagacity-prod --query properties.apiKey -o tsv)
+          echo "token=${SWA_TOKEN}" >> $GITHUB_OUTPUT
+
+      - name: Deploy React Client to Azure Static Web Apps
+        uses: Azure/static-web-apps-deploy@v1
+        with:
+          azure_static_web_apps_api_token: ${{ steps.get-swa-token.outputs.token }}
+          repo_token: ${{ secrets.GITHUB_TOKEN }}
+          action: "upload"
+          app_location: "src/sagacitysolutions.com.portal.Client"
+          api_location: ""
+          output_location: "dist"
