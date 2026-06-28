@@ -61,7 +61,9 @@ jobs:
           scope: subscription
           region: westus2
           template: ./infra/main.bicep
-          parameters: '{"adminUsername": {"value": "portaladmin"}, "adminPassword": {"value": "${{ secrets.AZURE_POSTGRES_PASSWORD }}"}}'
+          parameters: |
+            adminUsername=portaladmin
+            adminPassword=${{ secrets.AZURE_POSTGRES_PASSWORD }}
 
       - name: Show Azure Deployment Failure Details
         if: failure()
