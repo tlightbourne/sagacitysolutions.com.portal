@@ -42,9 +42,14 @@ builder.Services.AddMediatR(cfg =>
 builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
     .AddJwtBearer(options =>
     {
-        options.Authority = "http://localhost:3001/oidc"; // Logto authority
-        options.Audience = "http://localhost:5092";       // PORTAL_API Audience
-        options.RequireHttpsMetadata = false;             // Development setting
+        var authority = builder.Configuration["Authentication:Authority"] ?? builder.Configuration["LOGTO_ENDPOINT"] ?? "http://localhost:3001";
+        if (!authority.EndsWith("/oidc"))
+        {
+            authority = authority.TrimEnd('/') + "/oidc";
+        }
+        options.Authority = authority;
+        options.Audience = builder.Configuration["Authentication:Audience"] ?? builder.Configuration["PORTAL_API_RESOURCE"] ?? "http://localhost:5092";
+        options.RequireHttpsMetadata = false;             // Allow HTTP in dev or internal container apps
         options.TokenValidationParameters = new TokenValidationParameters
         {
             ValidateIssuer = true,

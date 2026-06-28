@@ -89,30 +89,6 @@ jobs:
           echo "=== Azure Resource Group Deployment Operations ==="
           az deployment operation group list --resource-group rg-sagacity-prod --name portalResourcesDeployment --query "[?properties.provisioningState=='Failed'].properties.statusMessage" -o json || true
 
-      - name: Update WebApi Azure Container App
-        run: |
-          az containerapp update \
-            --name app-webapi \
-            --resource-group rg-sagacity-prod \
-            --image ghcr.io/${{ github.repository_owner }}/sagacity-webapi:${{ github.ref_name }}
-
-      - name: Update BFF Azure Container App
-        run: |
-          LOGTO_FQDN=$(az containerapp show --name app-logto --resource-group rg-sagacity-prod --query properties.configuration.ingress.fqdn -o tsv)
-          WEBAPI_FQDN=$(az containerapp show --name app-webapi --resource-group rg-sagacity-prod --query properties.configuration.ingress.fqdn -o tsv)
-          BFF_FQDN=$(az containerapp show --name app-bff --resource-group rg-sagacity-prod --query properties.configuration.ingress.fqdn -o tsv)
-          SWA_HOST=$(az staticwebapp show --name swa-sagacity-prod --resource-group rg-sagacity-prod --query defaultHostname -o tsv)
-
-          az containerapp update \
-            --name app-bff \
-            --resource-group rg-sagacity-prod \
-            --image ghcr.io/${{ github.repository_owner }}/sagacity-bff:${{ github.ref_name }} \
-            --set-env-vars \
-              LOGTO_ENDPOINT="https://${LOGTO_FQDN}" \
-              PORTAL_API_URL="https://${WEBAPI_FQDN}" \
-              BASE_URL="https://${BFF_FQDN}" \
-              CLIENT_ORIGIN="https://${SWA_HOST}"
-
       - name: Prepare Dynamic Connection Strings & M2M Credentials
         id: prep-env
         run: |
@@ -131,12 +107,48 @@ jobs:
           
           M2M_ID="prod-m2m-client"
           M2M_SECRET=$(echo -n "${POSTGRES_PASS}-logto-m2m-key" | sha256sum | awk '{print $1}')
+          SESSION_SEC=$(echo -n "${POSTGRES_PASS}-session-secret" | sha256sum | awk '{print $1}')
           echo "m2m_id=${M2M_ID}" >> $GITHUB_OUTPUT
           echo "m2m_secret=${M2M_SECRET}" >> $GITHUB_OUTPUT
+          echo "session_sec=${SESSION_SEC}" >> $GITHUB_OUTPUT
           echo "::add-mask::${M2M_SECRET}"
+          echo "::add-mask::${SESSION_SEC}"
           
-          BFF_FQDN=$(az containerapp show --name app-bff --resource-group rg-sagacity-prod --query properties.configuration.ingress.fqdn -o tsv || echo "api.sagacitysolutions.ai")
+          LOGTO_FQDN=$(az containerapp show --name app-logto --resource-group rg-sagacity-prod --query properties.configuration.ingress.fqdn -o tsv || echo "app-logto.politebay-f3ad130c.centralus.azurecontainerapps.io")
+          WEBAPI_FQDN=$(az containerapp show --name app-webapi --resource-group rg-sagacity-prod --query properties.configuration.ingress.fqdn -o tsv || echo "app-webapi.politebay-f3ad130c.centralus.azurecontainerapps.io")
+          BFF_FQDN=$(az containerapp show --name app-bff --resource-group rg-sagacity-prod --query properties.configuration.ingress.fqdn -o tsv || echo "app-bff.politebay-f3ad130c.centralus.azurecontainerapps.io")
+          SWA_HOST=$(az staticwebapp show --name swa-sagacity-prod --resource-group rg-sagacity-prod --query defaultHostname -o tsv || echo "swa-sagacity-prod.azurestaticapps.net")
+
+          echo "logto_fqdn=${LOGTO_FQDN}" >> $GITHUB_OUTPUT
+          echo "webapi_fqdn=${WEBAPI_FQDN}" >> $GITHUB_OUTPUT
           echo "bff_fqdn=${BFF_FQDN}" >> $GITHUB_OUTPUT
+          echo "swa_host=${SWA_HOST}" >> $GITHUB_OUTPUT
+
+      - name: Update WebApi Azure Container App
+        run: |
+          az containerapp update \
+            --name app-webapi \
+            --resource-group rg-sagacity-prod \
+            --image ghcr.io/${{ github.repository_owner }}/sagacity-webapi:${{ github.ref_name }} \
+            --set-env-vars \
+              LOGTO_ENDPOINT="https://${{ steps.prep-env.outputs.logto_fqdn }}" \
+              PORTAL_API_RESOURCE="https://${{ steps.prep-env.outputs.webapi_fqdn }}"
+
+      - name: Update BFF Azure Container App
+        run: |
+          az containerapp update \
+            --name app-bff \
+            --resource-group rg-sagacity-prod \
+            --image ghcr.io/${{ github.repository_owner }}/sagacity-bff:${{ github.ref_name }} \
+            --set-env-vars \
+              LOGTO_ENDPOINT="https://${{ steps.prep-env.outputs.logto_fqdn }}" \
+              PORTAL_API_URL="https://${{ steps.prep-env.outputs.webapi_fqdn }}" \
+              PORTAL_API_RESOURCE="https://${{ steps.prep-env.outputs.webapi_fqdn }}" \
+              BASE_URL="https://${{ steps.prep-env.outputs.bff_fqdn }}" \
+              CLIENT_ORIGIN="https://${{ steps.prep-env.outputs.swa_host }}" \
+              LOGTO_APP_ID="${{ steps.prep-env.outputs.m2m_id }}" \
+              LOGTO_APP_SECRET="${{ steps.prep-env.outputs.m2m_secret }}" \
+              SESSION_SECRET="${{ steps.prep-env.outputs.session_sec }}"
 
       - name: Run WebApi Database Migrations
         run: |
@@ -153,12 +165,11 @@ jobs:
           LOGTO_M2M_CLIENT_ID: ${{ steps.prep-env.outputs.m2m_id }}
           LOGTO_M2M_CLIENT_SECRET: ${{ steps.prep-env.outputs.m2m_secret }}
           DB_URL: ${{ steps.prep-env.outputs.logto_db_url }}
+          LOGTO_ENDPOINT: "https://${{ steps.prep-env.outputs.logto_fqdn }}"
+          PORTAL_API_RESOURCE: "https://${{ steps.prep-env.outputs.webapi_fqdn }}"
+          CLIENT_ORIGIN: "https://${{ steps.prep-env.outputs.swa_host }}"
         run: |
           npm ci
-          LOGTO_FQDN=$(az containerapp show --name app-logto --resource-group rg-sagacity-prod --query properties.configuration.ingress.fqdn -o tsv || echo "auth.sagacitysolutions.ai")
-          export LOGTO_ENDPOINT="https://${LOGTO_FQDN}"
-          export PORTAL_API_RESOURCE="https://api.sagacitysolutions.ai"
-          export CLIENT_ORIGIN="https://portal.sagacitysolutions.ai"
           npm run seed:logto:prod || echo "Production Logto seeding completed or skipped safely."
 
       - name: Fetch Static Web App Deployment Token

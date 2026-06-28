@@ -196,6 +196,14 @@ resource webApiApp 'Microsoft.App/containerApps@2023-05-01' = {
               name: 'ConnectionStrings__DefaultConnection'
               value: 'Host=${postgresServer.properties.fullyQualifiedDomainName};Database=sagacitysolutions;Username=${adminUsername};Password=${adminPassword};SSL Mode=Require;'
             }
+            {
+              name: 'LOGTO_ENDPOINT'
+              value: 'https://app-logto.${managedEnv.properties.defaultDomain}'
+            }
+            {
+              name: 'PORTAL_API_RESOURCE'
+              value: 'https://app-webapi.${managedEnv.properties.defaultDomain}'
+            }
           ]
         }
       ]
@@ -247,7 +255,7 @@ resource bffApp 'Microsoft.App/containerApps@2023-05-01' = {
             }
             {
               name: 'PORTAL_API_RESOURCE'
-              value: 'https://api.sagacitysolutions.ai'
+              value: 'https://app-webapi.${managedEnv.properties.defaultDomain}'
             }
           ]
         }

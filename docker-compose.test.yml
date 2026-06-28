@@ -69,7 +69,8 @@ services:
       LOGTO_APP_ID: moxwjx3you2zdb4dglttg
       LOGTO_APP_SECRET: 7sAbhzKUoi42MtxZgEgIdU3LbQwTES1w
       CLIENT_ORIGIN: http://localhost:5173
-      PORTAL_API: http://localhost:5092
+      PORTAL_API_URL: http://webapi-test:5092
+      PORTAL_API_RESOURCE: http://localhost:5092
       SESSION_SECRET: change-me-in-production-use-a-long-random-string
     extra_hosts:
       - "localhost:host-gateway"
