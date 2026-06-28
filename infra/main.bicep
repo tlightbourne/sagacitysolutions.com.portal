@@ -8,7 +8,7 @@ param location string = 'westus2'
 param environmentName string = 'prod'
 
 @description('PostgreSQL Administrator Login.')
-param adminUsername string = 'sagacityadmin'
+param adminUsername string = 'portaladmin'
 
 @description('PostgreSQL Administrator Password.')
 @secure()
