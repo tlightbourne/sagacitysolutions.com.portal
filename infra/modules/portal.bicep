@@ -89,7 +89,20 @@ resource logtoApp 'Microsoft.App/containerApps@2023-05-01' = {
         {
           name: 'logto'
           image: 'svhd/logto:1.40.1'
+          command: [
+            'sh'
+            '-c'
+            'npx @logto/cli db alter deploy || true; npm start'
+          ]
           env: [
+            {
+              name: 'TRUST_PROXY_HEADER'
+              value: 'true'
+            }
+            {
+              name: 'PORT'
+              value: '3001'
+            }
             {
               name: 'ENDPOINT'
               value: 'https://auth.sagacitysolutions.ai'
@@ -126,7 +139,20 @@ resource logtoAdminApp 'Microsoft.App/containerApps@2023-05-01' = {
         {
           name: 'logto-admin'
           image: 'svhd/logto:1.40.1'
+          command: [
+            'sh'
+            '-c'
+            'npx @logto/cli db alter deploy || true; npm start'
+          ]
           env: [
+            {
+              name: 'TRUST_PROXY_HEADER'
+              value: 'true'
+            }
+            {
+              name: 'PORT'
+              value: '3002'
+            }
             {
               name: 'ENDPOINT'
               value: 'https://auth.sagacitysolutions.ai'

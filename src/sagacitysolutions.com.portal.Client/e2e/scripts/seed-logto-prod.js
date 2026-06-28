@@ -66,23 +66,42 @@ async function runProductionSeeding() {
   // 1. Database level configuration (custom JWT script & configs) if DB_URL is provided
   if (DB_URL) {
     try {
-      console.log("⚙️ Applying production Logto JWT claim scripts via PostgreSQL connection...");
-      const sqlContent = [
-        `INSERT INTO applications (tenant_id, id, name, type, secret, oidc_client_metadata, custom_data) VALUES ('default', '${m2mClientId}', 'Production M2M Client', 'MachineToMachine', '${m2mClientSecret}', '{"redirectUris": [], "postLogoutRedirectUris": []}', '{}') ON CONFLICT DO NOTHING;`,
-        `INSERT INTO application_secrets (tenant_id, application_id, name, value) VALUES ('default', '${m2mClientId}', 'Default secret', '${m2mClientSecret}') ON CONFLICT DO NOTHING;`,
-        `INSERT INTO applications_roles (tenant_id, id, application_id, role_id) VALUES ('default', 'prod-m2m-link', '${m2mClientId}', 'admin-role') ON CONFLICT DO NOTHING;`,
-        `INSERT INTO application_user_consent_resource_scopes (tenant_id, application_id, scope_id) VALUES ('default', '${m2mClientId}', 'management-api-all') ON CONFLICT DO NOTHING;`,
-        `UPDATE logto_configs SET value = '{"enabledExtendedClaims": ["roles", "organizations", "organization_roles", "organization_data", "custom_data"]}' WHERE key = 'idToken' AND tenant_id = 'default';`,
-        `INSERT INTO logto_configs (tenant_id, key, value) VALUES ('default', 'jwt.accessToken', '${escapedJwtConfigValue}') ON CONFLICT (tenant_id, key) DO UPDATE SET value = EXCLUDED.value;`
-      ].join("\n");
+      console.log("⚙️ Waiting for Logto database schema migration tables to initialize...");
+      let tableReady = false;
+      for (let i = 0; i < 20; i++) {
+        try {
+          const checkOutput = execSync(`psql "${DB_URL}" -t -c "SELECT EXISTS (SELECT FROM information_schema.tables WHERE table_name = 'logto_configs');"`, { encoding: "utf-8" }).trim();
+          if (checkOutput === "t" || checkOutput === "true") {
+            tableReady = true;
+            break;
+          }
+        } catch (err) {
+          // Database connection or table initialization pending
+        }
+        await sleep(3000);
+      }
 
-      const tempSqlFile = path.join(__dirname, "bootstrap_prod.sql");
-      fs.writeFileSync(tempSqlFile, sqlContent, "utf-8");
-      
-      execSync(`psql "${DB_URL}" -f "${tempSqlFile}"`, { encoding: "utf-8", stdio: "inherit" });
-      console.log("✅ Production Logto database configurations updated!");
+      if (tableReady) {
+        console.log("⚙️ Applying production Logto JWT claim scripts via PostgreSQL connection...");
+        const sqlContent = [
+          `INSERT INTO applications (tenant_id, id, name, type, secret, oidc_client_metadata, custom_data) VALUES ('default', '${m2mClientId}', 'Production M2M Client', 'MachineToMachine', '${m2mClientSecret}', '{"redirectUris": [], "postLogoutRedirectUris": []}', '{}') ON CONFLICT DO NOTHING;`,
+          `INSERT INTO application_secrets (tenant_id, application_id, name, value) VALUES ('default', '${m2mClientId}', 'Default secret', '${m2mClientSecret}') ON CONFLICT DO NOTHING;`,
+          `INSERT INTO applications_roles (tenant_id, id, application_id, role_id) VALUES ('default', 'prod-m2m-link', '${m2mClientId}', 'admin-role') ON CONFLICT DO NOTHING;`,
+          `INSERT INTO application_user_consent_resource_scopes (tenant_id, application_id, scope_id) VALUES ('default', '${m2mClientId}', 'management-api-all') ON CONFLICT DO NOTHING;`,
+          `UPDATE logto_configs SET value = '{"enabledExtendedClaims": ["roles", "organizations", "organization_roles", "organization_data", "custom_data"]}' WHERE key = 'idToken' AND tenant_id = 'default';`,
+          `INSERT INTO logto_configs (tenant_id, key, value) VALUES ('default', 'jwt.accessToken', '${escapedJwtConfigValue}') ON CONFLICT (tenant_id, key) DO UPDATE SET value = EXCLUDED.value;`
+        ].join("\n");
 
-      try { fs.unlinkSync(tempSqlFile); } catch (e) {}
+        const tempSqlFile = path.join(__dirname, "bootstrap_prod.sql");
+        fs.writeFileSync(tempSqlFile, sqlContent, "utf-8");
+        
+        execSync(`psql "${DB_URL}" -f "${tempSqlFile}"`, { encoding: "utf-8", stdio: "inherit" });
+        console.log("✅ Production Logto database configurations updated!");
+
+        try { fs.unlinkSync(tempSqlFile); } catch (e) {}
+      } else {
+        console.warn("⚠️ Logto database tables were not initialized within timeout; skipping direct SQL injection.");
+      }
     } catch (e) {
       console.warn("⚠️ Database direct SQL application skipped or failed:", e.message);
     }
