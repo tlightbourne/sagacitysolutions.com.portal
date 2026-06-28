@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from "react";
-import type { Project, ProjectStatus } from "../types";
+import type { Project } from "../types";
 import "./ProjectSelector.css";
 import {
     FolderIcon,
@@ -8,8 +8,7 @@ import {
     EditIcon,
     TrashIcon,
     CheckIcon,
-    CopyIcon,
-    PlusIcon
+    CopyIcon
 } from "./Icons";
 
 interface ProjectSelectorProps {
@@ -42,9 +41,6 @@ export function ProjectSelector({
     const [copiedProjectId, setCopiedProjectId] = useState<string | null>(null);
 
     const dropdownRef = useRef<HTMLDivElement>(null);
-
-    const canWriteProjects = scopes.includes("write:projects");
-    const canAddProject = canWriteProjects && Object.keys(organizations).length > 0;
 
     // Handle clicking outside to close projects dropdown
     useEffect(() => {

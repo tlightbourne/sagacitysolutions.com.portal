@@ -80,8 +80,6 @@ export function TasksPanel({
 
   const scopes = scope?.split(" ") || [];
   const canWrite = scopes.includes("write:tasks");
-  const hasWriteProjectScope = scopes.includes("write:projects");
-  const canAddProject = hasWriteProjectScope && Object.keys(organizations).length > 0;
 
   const toggleExpand = (id: string, e?: React.MouseEvent) => {
     if (e) e.stopPropagation();
