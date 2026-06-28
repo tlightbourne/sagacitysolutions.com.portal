@@ -185,6 +185,8 @@ export function TasksPanel({
             setEditingProject(project);
             setIsEditProjectModalOpen(true);
           }}
+          organizations={organizations}
+          scopes={scopes}
         />
 
         <TaskFilterBar

@@ -8,17 +8,20 @@ import {
     EditIcon,
     TrashIcon,
     CheckIcon,
-    CopyIcon
+    CopyIcon,
+    PlusIcon
 } from "./Icons";
 
 interface ProjectSelectorProps {
     projects: Project[];
-    activeProject: Project;
+    activeProject: Project | null;
     portalProjectIds: string[];
     onSelectProject: (project: Project) => void;
     onDeleteProject: (projectId: string) => Promise<void>;
     onOpenCreateProjectModal: () => void;
     onOpenEditProjectModal: (project: Project) => void;
+    organizations: Record<string, string>;
+    scopes: string[];
 }
 
 export function ProjectSelector({
@@ -28,7 +31,9 @@ export function ProjectSelector({
     onSelectProject,
     onDeleteProject,
     onOpenCreateProjectModal,
-    onOpenEditProjectModal
+    onOpenEditProjectModal,
+    organizations,
+    scopes
 }: ProjectSelectorProps) {
 
     const [isProjectDropdownOpen, setIsProjectDropdownOpen] = useState(false);
@@ -37,6 +42,9 @@ export function ProjectSelector({
     const [copiedProjectId, setCopiedProjectId] = useState<string | null>(null);
 
     const dropdownRef = useRef<HTMLDivElement>(null);
+
+    const canWriteProjects = scopes.includes("write:projects");
+    const canAddProject = canWriteProjects && Object.keys(organizations).length > 0;
 
     // Handle clicking outside to close projects dropdown
     useEffect(() => {
