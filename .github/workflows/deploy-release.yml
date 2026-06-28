@@ -61,15 +61,15 @@ jobs:
           scope: subscription
           region: westus2
           template: ./infra/main.bicep
-          parameters: adminUsername='portaladmin' adminPassword='${{ secrets.AZURE_POSTGRES_PASSWORD }}'
+          parameters: '{"adminUsername": {"value": "portaladmin"}, "adminPassword": {"value": "${{ secrets.AZURE_POSTGRES_PASSWORD }}"}}'
 
       - name: Show Azure Deployment Failure Details
         if: failure()
         run: |
           echo "=== Azure Subscription Deployment Failures ==="
           az deployment operation sub list --name main --query "[?properties.provisioningState=='Failed'].properties.statusMessage" -o json || true
-          echo "=== Azure Resource Group Deployment Failures ==="
-          az deployment group list-failed-operations --resource-group rg-sagacity-prod --name portalResourcesDeployment || true
+          echo "=== Azure Resource Group Deployment Operations ==="
+          az deployment operation group list --resource-group rg-sagacity-prod --name portalResourcesDeployment --query "[?properties.provisioningState=='Failed'].properties.statusMessage" -o json || true
 
       - name: Update WebApi Azure Container App
         uses: azure/container-apps-deploy-action@v1
