@@ -96,7 +96,7 @@ resource logtoApp 'Microsoft.App/containerApps@2023-05-01' = {
           command: [
             'sh'
             '-c'
-            'npm run alter -- --deploy || npx @logto/cli db alter deploy || true; npm start'
+            'npm run alteration deploy || npx @logto/cli db alteration deploy || true; npm start'
           ]
           env: [
             {
@@ -150,7 +150,7 @@ resource logtoAdminApp 'Microsoft.App/containerApps@2023-05-01' = {
           command: [
             'sh'
             '-c'
-            'npm run alter -- --deploy || npx @logto/cli db alter deploy || true; npm start'
+            'npm run alteration deploy || npx @logto/cli db alteration deploy || true; npm start'
           ]
           env: [
             {
