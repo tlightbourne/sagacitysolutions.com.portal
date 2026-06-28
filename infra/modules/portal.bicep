@@ -85,6 +85,10 @@ resource logtoApp 'Microsoft.App/containerApps@2023-05-01' = {
       }
     }
     template: {
+      scale: {
+        minReplicas: 1
+        maxReplicas: 10
+      }
       containers: [
         {
           name: 'logto'
@@ -92,7 +96,7 @@ resource logtoApp 'Microsoft.App/containerApps@2023-05-01' = {
           command: [
             'sh'
             '-c'
-            'npx @logto/cli db alter deploy || true; npm start'
+            'npm run alter -- --deploy || npx @logto/cli db alter deploy || true; npm start'
           ]
           env: [
             {
@@ -135,6 +139,10 @@ resource logtoAdminApp 'Microsoft.App/containerApps@2023-05-01' = {
       }
     }
     template: {
+      scale: {
+        minReplicas: 1
+        maxReplicas: 10
+      }
       containers: [
         {
           name: 'logto-admin'
@@ -142,7 +150,7 @@ resource logtoAdminApp 'Microsoft.App/containerApps@2023-05-01' = {
           command: [
             'sh'
             '-c'
-            'npx @logto/cli db alter deploy || true; npm start'
+            'npm run alter -- --deploy || npx @logto/cli db alter deploy || true; npm start'
           ]
           env: [
             {
@@ -185,6 +193,10 @@ resource webApiApp 'Microsoft.App/containerApps@2023-05-01' = {
       }
     }
     template: {
+      scale: {
+        minReplicas: 1
+        maxReplicas: 10
+      }
       containers: [
         {
           name: 'webapi'
@@ -214,6 +226,10 @@ resource bffApp 'Microsoft.App/containerApps@2023-05-01' = {
       }
     }
     template: {
+      scale: {
+        minReplicas: 1
+        maxReplicas: 10
+      }
       containers: [
         {
           name: 'bff'
