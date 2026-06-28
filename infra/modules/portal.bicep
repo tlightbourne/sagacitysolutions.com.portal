@@ -104,11 +104,11 @@ resource logtoApp 'Microsoft.App/containerApps@2023-05-01' = {
             }
             {
               name: 'ENDPOINT'
-              value: 'https://app-logto.${managedEnv.properties.defaultDomain}'
+              value: 'https://auth.sagacitysolutions.ai'
             }
             {
               name: 'ADMIN_ENDPOINT'
-              value: 'https://app-logto-admin.${managedEnv.properties.defaultDomain}'
+              value: 'https://admin-auth.sagacitysolutions.ai'
             }
             {
               name: 'DB_URL'
@@ -157,11 +157,11 @@ resource logtoAdminApp 'Microsoft.App/containerApps@2023-05-01' = {
             }
             {
               name: 'ENDPOINT'
-              value: 'https://app-logto.${managedEnv.properties.defaultDomain}'
+              value: 'https://auth.sagacitysolutions.ai'
             }
             {
               name: 'ADMIN_ENDPOINT'
-              value: 'https://app-logto-admin.${managedEnv.properties.defaultDomain}'
+              value: 'https://admin-auth.sagacitysolutions.ai'
             }
             {
               name: 'DB_URL'
@@ -202,11 +202,11 @@ resource webApiApp 'Microsoft.App/containerApps@2023-05-01' = {
             }
             {
               name: 'LOGTO_ENDPOINT'
-              value: 'https://app-logto.${managedEnv.properties.defaultDomain}'
+              value: 'https://auth.sagacitysolutions.ai'
             }
             {
               name: 'PORTAL_API_RESOURCE'
-              value: 'https://app-webapi.${managedEnv.properties.defaultDomain}'
+              value: 'https://api.sagacitysolutions.ai'
             }
           ]
         }
@@ -243,23 +243,23 @@ resource bffApp 'Microsoft.App/containerApps@2023-05-01' = {
             }
             {
               name: 'CLIENT_ORIGIN'
-              value: 'https://${staticWebApp.properties.defaultHostname}'
+              value: 'https://portal.sagacitysolutions.ai'
             }
             {
               name: 'LOGTO_ENDPOINT'
-              value: 'https://app-logto.${managedEnv.properties.defaultDomain}'
+              value: 'https://auth.sagacitysolutions.ai'
             }
             {
               name: 'BASE_URL'
-              value: 'https://app-bff.${managedEnv.properties.defaultDomain}'
+              value: 'https://bff.sagacitysolutions.ai'
             }
             {
               name: 'PORTAL_API_URL'
-              value: 'https://app-webapi.${managedEnv.properties.defaultDomain}'
+              value: 'https://api.sagacitysolutions.ai'
             }
             {
               name: 'PORTAL_API_RESOURCE'
-              value: 'https://app-webapi.${managedEnv.properties.defaultDomain}'
+              value: 'https://api.sagacitysolutions.ai'
             }
           ]
         }
