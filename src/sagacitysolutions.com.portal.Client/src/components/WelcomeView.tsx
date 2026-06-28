@@ -8,7 +8,6 @@ export function WelcomeView({ status, onLogin }: WelcomeViewProps) {
     return (
       <div className="welcome-container">
         <div className="welcome-glass-card">
-          <div className="welcome-logo">S</div>
           <h2>Sagacity Solutions</h2>
           <p>Initializing secure consulting session…</p>
         </div>
@@ -19,7 +18,6 @@ export function WelcomeView({ status, onLogin }: WelcomeViewProps) {
   return (
     <div className="welcome-container">
       <div className="welcome-glass-card">
-        <div className="welcome-logo">S</div>
         <h2>Sagacity Solutions</h2>
         <p>
           Welcome to the project portal. Please sign in to securely view your
