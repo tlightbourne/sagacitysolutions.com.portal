@@ -149,6 +149,10 @@ resource logtoAdminApp 'Microsoft.App/containerApps@2023-05-01' = {
             }
             {
               name: 'PORT'
+              value: '3003'
+            }
+            {
+              name: 'ADMIN_PORT'
               value: '3002'
             }
             {
