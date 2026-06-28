@@ -30,7 +30,7 @@ jobs:
         uses: docker/setup-buildx-action@v3
 
       - name: Build and Push WebApi Container Image
-        uses: docker/build-push-action@v5
+        uses: docker/build-push-action@v6
         with:
           context: .
           file: src/sagacitysolutions.com.portal.WebApi/Dockerfile
@@ -40,7 +40,7 @@ jobs:
             ghcr.io/${{ github.repository_owner }}/sagacity-webapi:latest
 
       - name: Build and Push BFF Container Image
-        uses: docker/build-push-action@v5
+        uses: docker/build-push-action@v6
         with:
           context: src/sagacitysolutions.com.portal.Bff
           file: src/sagacitysolutions.com.portal.Bff/Dockerfile

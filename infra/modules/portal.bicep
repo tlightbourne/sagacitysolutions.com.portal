@@ -73,7 +73,7 @@ resource managedEnv 'Microsoft.App/managedEnvironments@2023-05-01' = {
   properties: {}
 }
 
-// 4. Container App: Logto Identity Server
+// 4. Container App: Logto Identity Server (Core OIDC Server)
 resource logtoApp 'Microsoft.App/containerApps@2023-05-01' = {
   name: 'app-logto'
   location: location
@@ -83,18 +83,49 @@ resource logtoApp 'Microsoft.App/containerApps@2023-05-01' = {
       ingress: {
         external: true
         targetPort: 3001
-        additionalPortMappings: [
-          {
-            external: true
-            targetPort: 3002
-          }
-        ]
       }
     }
     template: {
       containers: [
         {
           name: 'logto'
+          image: 'svhd/logto:1.40.1'
+          env: [
+            {
+              name: 'ENDPOINT'
+              value: 'https://auth.sagacitysolutions.ai'
+            }
+            {
+              name: 'ADMIN_ENDPOINT'
+              value: 'https://admin-auth.sagacitysolutions.ai'
+            }
+            {
+              name: 'DB_URL'
+              value: 'postgresql://${adminUsername}:${adminPassword}@${postgresServer.properties.fullyQualifiedDomainName}:5432/logto?sslmode=require'
+            }
+          ]
+        }
+      ]
+    }
+  }
+}
+
+// 4b. Container App: Logto Admin Console
+resource logtoAdminApp 'Microsoft.App/containerApps@2023-05-01' = {
+  name: 'app-logto-admin'
+  location: location
+  properties: {
+    managedEnvironmentId: managedEnv.id
+    configuration: {
+      ingress: {
+        external: true
+        targetPort: 3002
+      }
+    }
+    template: {
+      containers: [
+        {
+          name: 'logto-admin'
           image: 'svhd/logto:1.40.1'
           env: [
             {
