@@ -77,7 +77,7 @@ jobs:
           subscriptionId: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
           scope: subscription
           region: centralus
-          deploymentName: sagacity-portal-deploy
+          deploymentName: sagacity-portal-deploy-${{ github.sha }}
           template: ./infra/main.bicep
           parameters: ./infra/main.parameters.json
 
@@ -85,7 +85,7 @@ jobs:
         if: failure()
         run: |
           echo "=== Azure Subscription Deployment Failures ==="
-          az deployment operation sub list --name sagacity-portal-deploy --query "[?properties.provisioningState=='Failed'].properties.statusMessage" -o json || true
+          az deployment operation sub list --query "[?properties.provisioningState=='Failed'].properties.statusMessage" -o json || true
           echo "=== Azure Resource Group Deployment Operations ==="
           az deployment operation group list --resource-group rg-sagacity-prod --name portalResourcesDeployment --query "[?properties.provisioningState=='Failed'].properties.statusMessage" -o json || true
 
