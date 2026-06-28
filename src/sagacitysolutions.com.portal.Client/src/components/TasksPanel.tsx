@@ -129,7 +129,7 @@ export function TasksPanel({
 
   // Recursive Leaf Task Collector
   const collectLeafTasks = (taskArray: WorkTask[]): WorkTask[] => {
-    let leaves: WorkTask[] = [];
+    const leaves: WorkTask[] = [];
     for (const t of taskArray) {
       if (!t.children || t.children.length === 0) {
         leaves.push(t);
@@ -185,8 +185,6 @@ export function TasksPanel({
             setEditingProject(project);
             setIsEditProjectModalOpen(true);
           }}
-          organizations={organizations}
-          scopes={scopes}
         />
 
         <TaskFilterBar

@@ -19,8 +19,6 @@ interface ProjectSelectorProps {
     onDeleteProject: (projectId: string) => Promise<void>;
     onOpenCreateProjectModal: () => void;
     onOpenEditProjectModal: (project: Project) => void;
-    organizations: Record<string, string>;
-    scopes: string[];
 }
 
 export function ProjectSelector({
@@ -30,9 +28,7 @@ export function ProjectSelector({
     onSelectProject,
     onDeleteProject,
     onOpenCreateProjectModal,
-    onOpenEditProjectModal,
-    organizations,
-    scopes
+    onOpenEditProjectModal
 }: ProjectSelectorProps) {
 
     const [isProjectDropdownOpen, setIsProjectDropdownOpen] = useState(false);
