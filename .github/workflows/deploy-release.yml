@@ -90,18 +90,18 @@ jobs:
           az deployment operation group list --resource-group rg-sagacity-prod --name portalResourcesDeployment --query "[?properties.provisioningState=='Failed'].properties.statusMessage" -o json || true
 
       - name: Update WebApi Azure Container App
-        uses: azure/container-apps-deploy-action@v1
-        with:
-          resourceGroup: rg-sagacity-prod
-          containerAppName: app-webapi
-          imageToDeploy: ghcr.io/${{ github.repository_owner }}/sagacity-webapi:${{ github.ref_name }}
+        run: |
+          az containerapp update \
+            --name app-webapi \
+            --resource-group rg-sagacity-prod \
+            --image ghcr.io/${{ github.repository_owner }}/sagacity-webapi:${{ github.ref_name }}
 
       - name: Update BFF Azure Container App
-        uses: azure/container-apps-deploy-action@v1
-        with:
-          resourceGroup: rg-sagacity-prod
-          containerAppName: app-bff
-          imageToDeploy: ghcr.io/${{ github.repository_owner }}/sagacity-bff:${{ github.ref_name }}
+        run: |
+          az containerapp update \
+            --name app-bff \
+            --resource-group rg-sagacity-prod \
+            --image ghcr.io/${{ github.repository_owner }}/sagacity-bff:${{ github.ref_name }}
 
       - name: Prepare Dynamic Connection Strings & M2M Credentials
         id: prep-env
@@ -109,11 +109,11 @@ jobs:
           POSTGRES_HOST="psql-sagacity-prod.postgres.database.azure.com"
           POSTGRES_PASS="${{ secrets.AZURE_POSTGRES_PASSWORD }}"
           
-          WEBAPI_CONN="Host=${POSTGRES_HOST};Database=sagacitysolutions;Username=sagacityadmin;Password=${POSTGRES_PASS};SSL Mode=Require;"
+          WEBAPI_CONN="Host=${POSTGRES_HOST};Database=sagacitysolutions;Username=portaladmin;Password=${POSTGRES_PASS};SSL Mode=Require;"
           echo "webapi_conn=${WEBAPI_CONN}" >> $GITHUB_OUTPUT
           echo "::add-mask::${WEBAPI_CONN}"
           
-          LOGTO_DB_URL="postgresql://sagacityadmin:${POSTGRES_PASS}@${POSTGRES_HOST}:5432/logto?sslmode=require"
+          LOGTO_DB_URL="postgresql://portaladmin:${POSTGRES_PASS}@${POSTGRES_HOST}:5432/logto?sslmode=require"
           echo "logto_db_url=${LOGTO_DB_URL}" >> $GITHUB_OUTPUT
           echo "::add-mask::${LOGTO_DB_URL}"
           
