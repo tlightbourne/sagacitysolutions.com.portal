@@ -12,6 +12,12 @@ const CLIENT_ORIGIN = process.env.CLIENT_ORIGIN ?? "http://localhost:5173";
 const PORTAL_API_URL = process.env.PORTAL_API_URL ?? process.env.PORTAL_API ?? "http://localhost:5092";
 const PORTAL_API_RESOURCE = process.env.PORTAL_API_RESOURCE ?? "http://localhost:5092";
 
+const isSecure = process.env.NODE_ENV === "production" || BASE_URL.startsWith("https://");
+
+if (isSecure) {
+  app.set("trust proxy", 1);
+}
+
 // ── Middleware ────────────────────────────────────────────────────────────────
 
 app.use(express.json());
@@ -31,8 +37,8 @@ app.use(
     saveUninitialized: false,
     cookie: {
       httpOnly: true,
-      sameSite: "lax",
-      secure: false,
+      sameSite: isSecure ? "none" : "lax",
+      secure: isSecure,
       maxAge: 14 * 24 * 60 * 60 * 1000,
     },
   })
