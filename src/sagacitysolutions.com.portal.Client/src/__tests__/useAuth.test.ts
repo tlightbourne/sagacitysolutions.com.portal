@@ -79,8 +79,9 @@ describe("useAuth", () => {
     // Verify useAuth re-fetched and updated user details
     await waitFor(() => {
       expect(result.current.status).toBe("authenticated");
-      // @ts-ignore (assert username matches updated value)
-      expect(result.current.user.username).toBe("second_user");
+      if (result.current.status === "authenticated") {
+        expect(result.current.user.username).toBe("second_user");
+      }
     });
 
     expect(vi.mocked(fetchMe)).toHaveBeenCalledTimes(2);

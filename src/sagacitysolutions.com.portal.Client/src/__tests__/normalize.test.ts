@@ -33,7 +33,7 @@ describe("normalizeProject", () => {
   });
 
   it("should throw error if project raw payload is empty or null", () => {
-    expect(() => normalizeProject(null as any)).toThrow();
+    expect(() => normalizeProject(null as unknown as Parameters<typeof normalizeProject>[0])).toThrow();
   });
 });
 
