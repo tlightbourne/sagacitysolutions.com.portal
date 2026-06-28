@@ -5,8 +5,8 @@ import type { Project } from "../../types";
 
 describe("ProjectsPanel Role Authorization Scopes", () => {
   const mockProjects: Project[] = [
-    { id: "proj-1", tenantId: "tenant1", name: "Alpha Project", status: "Active" },
-    { id: "proj-2", tenantId: "tenant1", name: "Beta Project", status: "Active" },
+    { id: "proj-1", tenantId: "tenant1", name: "Alpha Project", status: "Active", version: 1 },
+    { id: "proj-2", tenantId: "tenant1", name: "Beta Project", status: "Active", version: 1 },
   ];
 
   const mockOrganizations = {

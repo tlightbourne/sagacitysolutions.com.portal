@@ -22,7 +22,7 @@ interface ProjectsPanelProps {
   scope?: string;
   onAddProject: (tenantId: string, name: string) => Promise<void>;
   onDeleteProject: (projectId: string) => Promise<void>;
-  onEditProject: (projectId: string, name: string, status: ProjectStatus) => Promise<void>;
+  onEditProject: (projectId: string, name: string, status: ProjectStatus, version: number) => Promise<void>;
 }
 
 export function ProjectsPanel({

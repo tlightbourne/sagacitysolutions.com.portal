@@ -1,5 +1,5 @@
 import type { WorkTask } from "../types";
-import { ClockIcon, SubtaskIcon } from "./Icons";
+import { ClockIcon } from "./Icons";
 import { getTaskColorTheme } from "../helpers/TaskColorHelper";
 
 interface TaskCardProps {
