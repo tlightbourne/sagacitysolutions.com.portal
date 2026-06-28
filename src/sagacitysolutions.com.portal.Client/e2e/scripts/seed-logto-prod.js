@@ -13,7 +13,7 @@ async function runProductionSeeding() {
 
   const LOGTO_ENDPOINT = process.env.LOGTO_ENDPOINT || "https://auth.sagacitysolutions.ai";
   const API_RESOURCE = process.env.PORTAL_API_RESOURCE || "https://api.sagacitysolutions.ai";
-  const CLIENT_ORIGIN = process.env.CLIENT_ORIGIN || "https://sagacitysolutions.ai";
+  const CLIENT_ORIGIN = process.env.CLIENT_ORIGIN || "https://portal.sagacitysolutions.ai";
   const DB_URL = process.env.DB_URL || process.env.LOGTO_DB_URL || null;
 
   const m2mClientId = process.env.LOGTO_M2M_CLIENT_ID;

@@ -169,7 +169,7 @@ resource bffApp 'Microsoft.App/containerApps@2023-05-01' = {
             }
             {
               name: 'CLIENT_ORIGIN'
-              value: 'https://sagacitysolutions.ai'
+              value: 'https://portal.sagacitysolutions.ai'
             }
             {
               name: 'LOGTO_ENDPOINT'

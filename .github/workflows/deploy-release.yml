@@ -107,7 +107,7 @@ jobs:
         env:
           LOGTO_ENDPOINT: https://auth.sagacitysolutions.ai
           PORTAL_API_RESOURCE: https://api.sagacitysolutions.ai
-          CLIENT_ORIGIN: https://sagacitysolutions.ai
+          CLIENT_ORIGIN: https://portal.sagacitysolutions.ai
           LOGTO_M2M_CLIENT_ID: ${{ steps.prep-env.outputs.m2m_id }}
           LOGTO_M2M_CLIENT_SECRET: ${{ steps.prep-env.outputs.m2m_secret }}
           DB_URL: ${{ steps.prep-env.outputs.logto_db_url }}
