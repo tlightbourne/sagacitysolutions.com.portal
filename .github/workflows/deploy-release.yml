@@ -124,6 +124,9 @@ jobs:
           echo "m2m_id=${M2M_ID}" >> $GITHUB_OUTPUT
           echo "m2m_secret=${M2M_SECRET}" >> $GITHUB_OUTPUT
           echo "::add-mask::${M2M_SECRET}"
+          
+          BFF_FQDN=$(az containerapp show --name app-bff --resource-group rg-sagacity-prod --query properties.configuration.ingress.fqdn -o tsv || echo "api.sagacitysolutions.ai")
+          echo "bff_fqdn=${BFF_FQDN}" >> $GITHUB_OUTPUT
 
       - name: Run WebApi Database Migrations
         run: |
@@ -156,6 +159,8 @@ jobs:
 
       - name: Deploy React Client to Azure Static Web Apps
         uses: Azure/static-web-apps-deploy@v1
+        env:
+          VITE_BFF_ORIGIN: "https://${{ steps.prep-env.outputs.bff_fqdn }}"
         with:
           azure_static_web_apps_api_token: ${{ steps.get-swa-token.outputs.token }}
           repo_token: ${{ secrets.GITHUB_TOKEN }}
